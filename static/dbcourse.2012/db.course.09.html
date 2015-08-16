@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+    
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть девятая
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2011-11-16
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+<h1>Map / Reduce</h1>
+<p>* своими руками</p>
+<p>* Google MapReduce</p>
+<p>* Hadoop MapReduce</p>
+<p>* MongoDB MapReduce</p>
+</article>
+
+<!-- 
+<img class='centered' style='width: 500px' src="files/nosql_trend.png"/>
+<div class="source green">source:<a href="http://horicky.blogspot.com/2010/10/bigtable-model-with-cassandra-and-hbase.html">BigTable Model with Cassandra and HBase</a> by Ricky Ho</div>
+-->
+
+<article>
+<h3>Понятия</h3>
+<dl>
+<dt>Функция</dt>
+<dd>поименованная часть программы, возвращающая значение</dd>
+<dt>Список</dt>
+<dd>упорядоченный набор значений, значение может встречаться несколько раз</dd>
+</dl>
+<pre><code class="language-python">// python
+def f(x):
+    return x * x
+l = [1,3,4,8,22]</code></pre>
+<pre><code class="language-java">// java 
+int f(int x) {
+   return x * x;
+}</code></pre>
+</article>
+
+<article class="smaller">
+<div>Возведем в квадрат - обычный подход (python)</div>
+<pre>def square(x):
+    return x*x
+
+vals = [1, 2, 3, 4]
+newvals = []
+for v in vals:
+    newvals.append(square(v))</pre>
+<div>Python: сколько можно писать циклы? (1993? год)</div>
+<pre>def map(f, s):
+    result = []
+    for x in s:
+            result.append(f(x))
+    return result
+
+def square(x):
+    return x*x
+
+vals = [1, 2, 3, 4]
+newvals = map(square,vals)
+</pre>
+<div class="source green">source:<a href="http://habrahabr.ru/blogs/python/111756/">Откуда идут «функциональные» корни Python</a> at habrahabr.ru</div>
+</article>
+
+<article class="smaller">
+<!-- <div>Функция высшего порядка - функция, принимающая (или возвращающая) в качестве аргумента другую функцию ...<br/></div>-->
+<h3>Map</h3>
+<p>отображение (<a href="http://en.wikipedia.org/wiki/Map_(higher-order_function)">map</a>) - делаем новый список, элементы которого получены применением функции к элементам исходного списка</p>
+<img src="files/fp_map.png"/>
+<h3>Filter</h3>
+<p>фильтрация (<a href="http://en.wikipedia.org/wiki/Filter_(higher-order_function)">filter</a>) — каждый элемент списка проверяется на соответствие функции-предикату, и если элемент не соответствует, он выбрасывается из списка</p>
+<img src="files/fp_filter.png"/>
+<div class="source green">source:<a href="http://habrahabr.ru/blogs/python/50015/">Функциональное программирование для землян — списки</a> at habr</div>
+</article>
+
+<article class="smaller">
+<h3>Reduce</h3>
+<p>свертка (<a href="http://en.wikipedia.org/wiki/Fold_(higher-order_function)">reduce / fold</a>) - "сворачиваем" множество значений в одно, комбинируя последовательно элементы множества</p>
+<img src="files/fp_reduce.png"/> 
+<p>Требуются:
+<br/>Множество элементов: что мы будем "сворачивать"
+<br/>Начальный (пустой) элемент (unit): 1 - умножение, 0 - сложение, пустая строка - склеивание строк етс.
+<br/>функция двух параметров - комбинатор:
+<br/> v0 = combinator (unit, element);
+<br/> далее vi = combinator(Vprev, element);
+</p>
+<div class="source green">source:<a href="http://habrahabr.ru/blogs/python/50015/">Функциональное программирование для землян — списки</a> at habr</div>
+</article>
+
+<article class="smaller">
+<h3>Функциональная библиотека на Java</h3>
+<pre>interface Filter&lt;T&gt; { boolean fits(T t); }
+interface Function&lt;X, Y&gt; { Y apply(X arg); }
+interface BiFunction&lt;X, Y, Z&gt; { Z apply(X x, Y y); }
+
+public static &lt;X, Y&gt; List&lt;Y&gt; map(List&lt;X&gt; items, Function&lt;X, Y&gt; fu) {
+  final List&lt;Y&gt; out = new ArrayList&lt;Y&gt;(items.size());
+  for (final X item : items)
+    out.add(fu.apply(item));
+  return out; 
+}
+
+public static &lt;X&gt; List&lt;X&gt; filter(List&lt;X&gt; items, Filter&lt;X&gt; fi) {
+  final List&lt;X&gt; out = new ArrayList&lt;X&gt;();
+  for (final X item : items)
+    if (fi.fits(item))
+      out.add(item);
+  return out; 
+}
+
+public static &lt;U, X&gt; U reduce(List&lt;X&gt; items, BiFunction&lt;U, X, U&gt; fu, U unit) {
+  U out = unit;
+  for (final X item : items)
+    out = fu.apply(out, item);
+  return out; 
+}</pre>
+<div class="source"><a href="http://ru.wikipedia.org/wiki/%D0%A4%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D1%8F_%D0%B2%D1%8B%D1%81%D1%88%D0%B5%D0%B3%D0%BE_%D0%BF%D0%BE%D1%80%D1%8F%D0%B4%D0%BA%D0%B0">Функция высшего порядка</a> - функция, принимающая в качестве аргумента (или возвращающая) другую функцию ...</div>
+
+</article>
+
+<article class="fill smaller">
+<h3>Использование библиотеки</h3>
+<pre>final static Function&lt;Integer, Integer&gt; square = new Function&lt;Integer, Integer&gt;() {
+  public Integer apply(final Integer arg) {
+    return arg * arg;
+  }
+};
+
+final static Filter&lt;Integer&gt; evenFilter = new Filter&lt;Integer&gt;() {
+  public boolean fits(final Integer integer) {
+    return integer % 2 == 0;
+  }
+};
+
+final List&lt;Integer&gt; list = new ArrayList&lt;Integer&gt;();
+for(int i = 0; i &lt; 50; i++) 
+  list.add(i);
+
+final List&lt;Integer&gt; squaresOfEvens = map(filter(list, evenFilter), square);
+     или 
+final List&lt;Integer&gt; evens = filter(list, evenFilter);
+final List&lt;Integer&gt; squaresOfEvens = map(evens, square);
+     или
+final List&lt;Integer&gt; squares = new ArrayList&lt;Integer&gt;();
+for (final Integer integer : list) {
+  if (integer % 2 == 0) {
+    squares.add(integer); // ой!!! забыл в квадрат возвести
+  }}
+</pre>
+
+</article>
+
+<article class="smaller">
+<h3>В чем плюсы</h3>
+<ul>
+<li>Мы формализуем понятия map / filter / reduce.</li>
+<li>Мы убираем бесконечные повторения for / if ... в которых прячутся ошибки.</li>
+<li>Атомарные операции (функции, фильтры) можно и нужно отдельно тестировать.</li>
+<li>Наложенные ограничения заставляют нас писать более "атомарными" операциями.</li>
+<li>Мы пишем код в режиме "сборка из проверенных кирпичиков".</li>
+</ul>
+<h3>В чем минусы</h3>
+<ul>
+<li>непривычно (по началу)</li>
+<li>Java - много "лишнего" (слов, скобочек &lt; &gt; { } ) при описании - это неродное для языка</li>
+<li>quiz: продумать как оптимизирвоать bulk операции (идем в базу не по одной записи, а сразу за 1000 - см. fetchSize)</li>
+<!--
+<h3>Неявные плюсы:</h3>
+<li>незаметно от пользователя - встраиваем многопоточность</li>
+-->
+</ul>
+<p>Готовые библиотеки:<br/>
+<a href="http://code.google.com/p/lambdaj/">LambdaJ</a> is a library that makes easier to to manipulate collections in a pseudo-functional and statically typed way.<br/>
+<a href="http://code.google.com/p/guava-libraries/">Guava-libraries</a> contains several of Google's core libraries that we rely on in our Java-based projects: collections, caching, primitives support, concurrency libraries, common annotations, string processing, I/O, and so forth.
+</p>
+</article>
+
+<article class="build">
+<h3>А в чем изюминка?</h3>
+<p>Детали map / reduce реализации отдельны и скрыты от разработчика...</p>
+<p><br/>... и могут оптимизироваться отдельно ...</p>
+<p>Многопоточность?</p>
+<p>Распределенность?</p>
+</article>
+
+<article class="smaller">
+<h3>Многопоточный map - реализация</h3>
+<pre>final static int threads = 50;
+public static &lt;X, Y&gt; List&lt;Y&gt; mapParallel(
+      final List&lt;X&gt; items, final Function&lt;X, Y&gt; fu) 
+    throws InterruptedException, ExecutionException {
+  // нарежем на кусочки по количеству тредов
+  final int chunkSize = items.size() % threads;
+  final List&lt;List&lt;X&gt;&gt; chunks = split(items, chunkSize);
+  // подготовим исполнение в threads потоков
+  final ExecutorService executorService = Executors.newFixedThreadPool(threads);
+
+  final Function&lt;List&lt;X&gt;, Callable&lt;List&lt;Y&gt;&gt;&gt; toCallable 
+      = new Function&lt;List&lt;X&gt;, Callable&lt;List&lt;Y&gt;&gt;&gt;() {
+    public Callable&lt;List&lt;Y&gt;&gt; apply(final List&lt;X&gt; arg) {
+      return new Callable&lt;List&lt;Y&gt;&gt;() {
+        public List&lt;Y&gt; call() throws Exception {
+          return map(arg, fu); // исполнение через простую map
+        } }; } }; 
+
+  // сконвертиуем кусочки и отправим на вычисление
+  final List&lt;Future&lt;List&lt;Y&gt;&gt;&gt; futures = executorService
+    .invokeAll(map(chunks, toCallable)); // отправим на исполнение
+  executorService.shutdown(); // выключим многотредность
+
+  final List&lt;Y&gt; out = new ArrayList&lt;Y&gt;(items.size());
+  for (final Future&lt;List&lt;Y&gt;&gt; item : futures) // соберем результаты
+      out.addAll(item.get()); // Future.get подождет, если результат еще не готов
+  return out;
+}
+</pre>
+</article>
+
+<article class="smaller build">
+<p>... реализация же скрыта от разработчика, да? ...</p>
+<!--
+<pre>static &lt;X&gt; List&lt;List&lt;X&gt;&gt; split(final List&lt;X&gt; in, int size) {
+  final List&lt;List&lt;X&gt;&gt; out = new ArrayList&lt;List&lt;X&gt;&gt;();
+  List&lt;X&gt; part = null;
+  for (final X item : in) {
+    if (part == null) {
+      part = new ArrayList&lt;X&gt;(size);
+      out.add(part);
+    }
+    part.add(item);
+  }
+  return out; }
+</pre>-->
+<pre>final static int MAP_MAX_IN_SINGLE_THREAD = 500;
+final static int MAP_MIN_CHUNK_PER_THREAD = 100;
+
+public static &lt;X, Y&gt; List&lt;Y&gt; map(List&lt;X&gt; items, Function&lt;X, Y&gt; fu) {
+  if (items.size() &gt; MAP_MAX_IN_SINGLE_THREAD &amp;&amp;
+       items.size() &gt; MAP_MIN_CHUNK_PER_THREAD)
+    return mapParallel(items, fu);
+
+  final List&lt;Y&gt; out = new ArrayList&lt;Y&gt;(items.size());
+  for (final X item : items)
+    out.add(fu.apply(item));
+  return out;
+}
+</pre>
+<p>Мы сделали (и спрятали от разработчика) многопоточное исполнение вычисления ...</p>
+<p>... отладили и проверили ...</p>
+<p>... автоматом встроили в кучу мест, где уже используется...</p>
+<p>... автоматически включающееся от размер коллекции.</p>
+<p><span class="green">Кто хочет поискать по всему коду циклы for и встроить по тем местам многопоточность?</span></p> 
+</article>
+
+<article>
+<h3>MapReduce - мощная вычислительная модель.</h3>
+<p>Разделение кода<br/>
+<dl>
+<dt>вычисление - бизнес-логика:</dt>
+<dd>фунции, фильтры, комбинаторы</dd>
+<dt>исполнение - библиотека:</dt>
+<dd>map, filter, reduce</dd>
+</dt>
+<p>Это позволяет кодировать разным людям разные части системы ... и оптимизировать код по частям.</p>
+<p>Кому-то интересно возиться с библиотеками, кому-то интересно писать код и получать результаты от бизнес-части</p>
+</article>
+
+<article class="smaller">
+<h3>MapReduce by Google</h3>
+<p>В 2004-ом году Google публикует статью <a href="http://labs.google.com/papers/mapreduce.html">MapReduce: Simplified Data Processing on Large Clusters</a> by Jeffrey Dean и Sanjay Ghemawat (<a href="http://labs.google.com/papers/mapreduce-osdi04.pdf">pdf</a> / <a href="http://labs.google.com/papers/mapreduce-osdi04-slides/index.html">slides</a>).</p>
+<p>Рассматривается вычислительная модель MapReduce и внутренняя реализация, распараллеливающая вычисление в кластера большого размера.</p>
+<p>Малоопытные разработчики могут писать задачи для кластера ... на тысячи машин.</p>
+</article>
+
+<article class="smaller">
+<h3>Задачи</h3>
+<ul>
+<li>Обрабатывать много данных, дабы получать еще много данных</li>
+<li>Использовать тысячи компьютеров</li>
+<li>... это должно быть просто!</li>
+</ul>
+<h3>Требования</h3>
+<ul>
+<li>Автоматическая параллелизация</li>
+<li>Устойчивость к проблемам кластера</li>
+<li>Управление I/O ресурсами</li>
+<li>Отчеты и мониторинги</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h4>Вход</h4>
+<p>Наборы ключ-значение (строка - строка)</p>
+<h4>Программист предоставляет</h4>
+<p>
+<span class="blue">map (in_key, in_value) -&gt; list(out_key, intermediate_value)<br/></span>
+и<br/>
+<span class="blue">reduce (out_key, list(intermediate_value)) -&gt; list(out_value)<br/></span>
+</p>
+<h4>Система</h4>
+<ul>
+<li>Обрабатывает входные пары ключ-значение</li>
+<li>Получает промежуточные пары</li>
+<li>Собирает все пары с одним ключем в связку ключ-набор значений</li>
+<li>Производит выходной набор значений (обычно один)</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Example: Count word occurrences</h3>
+<pre>map(String input_key, String input_value):
+    // input_key: document name
+    // input_value: document contents
+    for each word w in input_value:
+      EmitIntermediate(w, "1");
+
+reduce(String output_key, Iterator intermediate_values):
+    // output_key: a word
+    // output_values: a list of counts
+    int result = 0;
+    for each v in intermediate_values:
+      result += ParseInt(v);
+    Emit(AsString(result));</pre>
+<p>Pseudocode: See appendix in paper for real code</p>
+<div class="source">source: <a href="http://labs.google.com/papers/mapreduce-osdi04-slides/index-auto-0004.html">слайды MapReduce:Simplified Data ...</a></div>
+</article>
+
+<article class="smaller">
+<h4>Важные детали</h4>
+<ul>
+<li>Данные храняться в кластере в распределенной GFS</li>
+<li>Есть понятие локальности - спрашиваем у GFS на каких машинах данные - туда ставим задачу на исполнение</li>
+<li>каждому мапперу - 16-64Мб данных на вход</li>
+<li>количество исходных мапперов до 200 000</li>
+<li>количество редьюсеров - 5 000</li>
+<li>при количестве машин - 2 000</li>
+<li>есть машина Master - отслеживающая таски, если она упала - перезапускай всю задачу</li>
+<li>результаты map - пишем в локальную файловую систему - скорость важна, надежность - нет, ибо можно пересчитать</li>
+<li>"дешево" пересчитать Map шаг - последние шаги запускаем повторно в параллель - просто дабы быстрее было, откидывая тормозов</li>
+<li>упавший шаг Reduce - просто перестартовываем, ибо данные в надежном GFS</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h5>Для чего используется</h5>
+<ul>
+<li>распределенный grep</li>
+<li>распределенный sort</li>
+<li>инверсированный индекс (для 10^10 документов)</li>
+<li>анализ логов</li>
+<li>кластеризация документов</li>
+<li>machine learning</li>
+<li>graph algorithms</li>
+<li>matrix algorithms</li>
+<li>etc</li>
+</ul>
+<h5>Литература по MapReduce</h5>
+<ul>
+<li><a href="http://horicky.blogspot.com/2010/08/designing-algorithmis-for-map-reduce.html">Designing algorithms for Map Reduce</a> by Ricky Ho</li>
+<li><a href="http://www.dbms2.com/2008/08/26/known-applications-of-mapreduce/">Known applications of MapReduce</a></li>
+<li><a href="http://code.google.com/intl/ru-RU/edu/submissions/mapreduce-minilecture/listing.html">Google: Cluster Computing and MapReduce</a> - видео и материалы лекций</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Hadoop / Hadoop MapReduce</h3>
+<p><a href="http://wiki.apache.org/hadoop/PoweredBy">Hadoop Wiki: PoweredBy</a></p>
+<p>Facebook, Amazon, Adobe, AOL, Baidu, EBay (532 node, 8*532 core, 5.3Pb), Google - для студентов, IBM, Last.fm, LinkedIn, Yahoo (100 000+ cores, 40 000+ nodes) ...</p>
+<ul>
+<li>свободно распространяемый аналог</li>
+<li>доступны исходные коды - можно почитать</li>
+<li>минимальная конфигурация - один компьютер (<a href="http://hadoop.apache.org/common/docs/current/single_node_setup.html">single node setup</a>)</li>
+<li>много литературы доступно в интернет и книжных магазинах</li>
+<li>хороший, подробный <a href="http://hadoop.apache.org/common/docs/current/mapred_tutorial.html">тюториал</a></li>
+<li><a href="http://habrahabr.ru/tag/Hadoop/">Hadoop на Хабре</a></li>
+</ul>
+<p>Amazon предлагает облако Hadoop машин - <a href="http://aws.amazon.com/elasticmapreduce/">Amazon Elastic MapReduce</a> ... с ценами от $0.015 (45 копеек) за час машинного времени.</p>
+</article>
+
+
+<article class="smaller">
+<h3>MongoDB ... MapReduce</h3>
+<p><a href="http://www.mongodb.org/display/DOCS/Production+Deployments">Production Deployments</a>: Disney, GitHub, FourSquare, SourceForge, etc...</p>
+<ul>
+<li>MongoDB - document oriented storage</li>
+<li>очень быстрое (много кеширует и использует memory mapped files)</li>
+<li>много типов index-ов</li>
+<li>поддерживает шардирование и реплики</li>
+<li>активно использует JavaScript / JSON</li>
+<li>данные внутри в BSON (binary-json)</li>
+<li>своя GridFS для хранения больших файлов</li>
+<li>... поддерживает mapReduce через javascript функции</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Как поставить mongo?</h3>
+<p><a href="http://www.mongodb.org/display/DOCS/Quickstart+OS+X">Quickstart OS X</a></p>
+<pre>
+$ brew update
+$ brew install mongodb
+...
+mongod run --config /usr/local/Cellar/mongodb/2.0.1-x86_64/mongod.conf </pre>
+<pre>  1 # Store data in /usr/local/var/mongodb instead of the default /data/db
+  2 dbpath = /usr/local/var/mongodb
+  3 
+  4 # Only accept local connections
+  5 bind_ip = 127.0.0.1 </pre>
+<pre>pulser-osx:~ pulser$ mongo
+MongoDB shell version: 2.0.1
+connecting to: test
+&gt; show dbs
+admin   (empty)
+csc 0.203125GB
+local   (empty) 
+&gt; use csc
+switched to db csc
+&gt; db.student.count()
+41</pre>
+</article>
+
+<article class="smaller">
+<h3>Как работать с MongoDB?</h3>
+<p>Пишем скрипт на javascript ... и кидаем через command-line</p>
+<pre>  1 t = db.student;
+  2 t.drop();
+  3 
+  4 t.save({name:"Аганезов Сергей",department:"UN",vuz:"ИТМО"})
+  5 t.save({name:"Альперович Семен",department:"SE",vuz:"СПбГПУ"})
+
+
+ 48 var m = function () {
+ 49     emit(this.vuz, {fio:this.name});
+ 50 };
+ 51 
+ 52 var r = function (key, values) {
+ 53     var sum = 0;
+ 54     var fu = function (doc) { sum = sum + 1; };
+ 55     values.forEach(fu);
+ 56     return {vuz:key, count:sum};
+ 57 };
+ 58 
+ 59 var op = db.student.mapReduce(m, r, {out:"mr_result"});
+ 60 var done = db.mr_result.find("this.value.count &gt; 0");
+ 61 
+ 62 done.forEach(printjson);</pre>
+</article>
+
+<article class="smaller">
+<h3>Пример вывода</h3>
+<pre>pulser-osx:tmp pulser$ mongo csc insert.js 
+MongoDB shell version: 2.0.1
+connecting to: csc
+{ "_id" : "ГУАП", "value" : { "vuz" : "ГУАП", "count" : 2 } }
+{ "_id" : "ИТМО", "value" : { "vuz" : "ИТМО", "count" : 20 } }
+{ "_id" : "СПбГПУ", "value" : { "vuz" : "СПбГПУ", "count" : 9 } }
+{ "_id" : "СПбГУ", "value" : { "vuz" : "СПбГУ", "count" : 6 } }</pre>
+<p>Литература:</p>
+<ul>
+<ul><a href="http://www.mongodb.org/display/DOCS/MapReduce">MongoDB: MapReduce</a> - тюториал</ul>
+<ul><a href="http://blog.fiesta.cc/post/10980328832/walkthrough-a-mongodb-map-reduce-job">Walkthrough: A MongoDB Map/Reduce Job</a></ul>
+<ul><a href="http://kylebanker.com/blog/2009/12/mongodb-map-reduce-basics/">MongoDB Aggregation III: Map-Reduce Basics</a></ul>
+<ul><a href="https://gist.github.com/304154">Basic text search with relevancy for MongoDB</a> - 65 строк на Ruby - строим inverted index по коллекции и отдаем ранжированный ответ</ul>
+</ul>
+</article>
+
+<article>
+<h3>Итого:</h3>
+<ul>
+<li>Функциональный подход - хорошо параллелизируется</li>
+<li>Даже если нет готовой реализации - зная принцип, можно сделать свою библиотеку</li>
+<li>Комбинация подход + библиотека = новый мир возможностей для бОльшего количества разработчиков</li>
+<li>Есть много реализаций - больших (Google, Hadoop) и небольших (MongoDB)</li>
+<li>Базу данных можно использовать не только для хранения, но и вычислений</li>
+<li>NB: ресурсы базы (CPU/память) - могут быть ограничены.</li>
+</ul>
+</article>
+
+      <article>
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse/index.html">http://fluffypulser.ru/static/dbcourse/index.html</a></li>
+        </ul>
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

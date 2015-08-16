@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть заключительная
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2011-12-07
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+    <h1>Итого / Обо всем</h1>
+    <p>Что было на лекциях ...</p>
+</article>
+
+<article>
+<h3>Структуры данных</h3>
+<p>Списки: массив, связанный список, ассоциативный список</p>
+<p>Скорость операций в списке.</p>
+<p>Добавить в конец, найти i-ый элемент, найти следующий элемент, вставить в середину etc...</p>
+<p>Отсортированный список, skip list</p>
+<p>HashMap, дерево етс ... что быстрее списка?</p>
+</article>
+
+<article>
+<h3>Представление структур данных в памяти</h3>
+<ul>
+<li>in-place</li>
+<li>абсолютная ссылка</li>
+<li>относительная ссылка</li>
+<li>включает / ссылается</li>
+<li>ссылка на удаленный компьютер</li>
+</ul>
+</article>
+
+<article>
+<h3>Хранение данных на диске</h3>
+<ul>
+<li>сериализация</li>
+<li>последовательный доступ</li>
+<li>произвольный доступ</li>
+</ul>
+<h3>Передача данных по сети</h3>
+<ul>
+<li>сериализация</li>
+<li>"удаленная" ссылка</li>
+<li>Thrift / Avro / Protocol Buffers / etc.</p>
+</ul>
+</article>
+
+<article>
+<h3>I/O latency</h3>
+<p>L1 cache: 3 cycles</p>
+<p>L2 cache: 14 cycles</p>
+<p>local RAM: 250 cycles</p>
+<p>local DISK: 41,000,000 cycles</p>
+<p>NETWORK: 240,000,000 cycles</p>
+<div class="source"><a href="http://nodejs.org/jsconf.pdf">node.js in brief</a> by ry@tinyclouds.org</div>
+</article>
+
+<article>
+<h3>Бумажная записная книга</h3>
+<p>... как алгоритмический прототип базы данных ...</p>
+<h3>Партиционирование</h3>
+<p>Вертикальное - рабочая записная vs домашняя</p>
+<p>Горизонтальное - разные разделы и страницы</p>
+<p>Шардирование</p>
+</article>
+
+<article>
+<h3>Cache как база</h3>
+<p>Зачем cache?</p>
+<p>- время ответа</p>
+<p>- CPU ресурсы</p>
+<p>- локальность</p>
+<p>- размер</p>
+<p/>
+<p>Cache miss: Сначала в кеш, если нет, в базу, из базы в кеш ...</p>
+<p>"Разогрев"</p>
+<p/>
+<p>Memcached / ehCache / JSR-107</p>
+</article>
+
+<article>
+<h3>Доступ ключ-значение</h3>
+<p><a href="http://en.wikipedia.org/wiki/Key-value_store#Key-value_store">wiki:Key value store</a></p>
+<p>Локальные и распределенные, in-memory и дисковые етс...</p>
+<p><a href="http://ru.wikipedia.org/wiki/DBM">wiki:DBM</a> - строки в файле, как хеше ... </p>
+<p><a href="http://www.oracle.com/technetwork/database/berkeleydb/overview/index.html">Berkeley DB</a> / <a href="http://fallabs.com/tokyocabinet/">Tokyo Cabinet</a> / <a href="http://fallabs.com/kyotocabinet/">Kyoto Cabinet</a> / <a href="http://code.google.com/p/leveldb/">LevelDB</a> ...</p>
+<p>SSTable ... sorted strings table</p>
+<p><a href="http://fallabs.com/tokyotyrant/">Tokyo Tyrant</a> - пакет сетевых интерфейсов <br/><a href="http://fallabs.com/kyototycoon/">Kyoto Tycoon</a> - db server для кешей и постоянных данных</p>
+<p>С дополнительными фичами ... </p>
+<p><a href="http://redis.io/">Redis</a> ... 100+ комманд, например subscribe / publish ...</p>
+</article>
+
+<article>
+<h3>Document oriented</h3>
+<p>JSON</p>
+<p>MongoDB</p>
+<h3>XML Database</h3>
+<p>XQuery / XPath etc</p>
+<p>Oracle XML DB</p>
+<h3>Object Database</h3>
+<p>...</p>
+<h3>Graph DB</h3>
+<p>Neo4j ...</p>
+<p>Pregel by Google</p>
+</article>
+
+<article>
+<h3>Распределенные</h3>
+<p> ... DHT (distributed hash table) ... </p>
+<p>Amazon Dynamo / Riak / Cassandra ...</p>
+<h3>Надежность хранения</h3>
+<p>репликация</p>
+<p>копии</p>
+<p>коды восстановления</p>
+<!--
+<h3>Многоверсионные (MVCC)</h3>
+<p>... доступно несколько версий данных ...</p>
+-->
+</article>
+
+<article>
+<h3>Гигантские</h3>
+<p>Файловые системы - HDFS</p>
+<p>Вычислительные - MapReduce / Hadoop</p>
+<p>...</p>
+<h4>http://nosql-database.org/</h4>
+<p>LIST OF NOSQL DATABASES [currently 122+]</p>
+<p><a href="http://nosql-database.org/">http://nosql-database.org/</a></p>
+<p><a href="http://kkovacs.eu/cassandra-vs-mongodb-vs-couchdb-vs-redis">Cassandra vs MongoDB vs CouchDB vs Redis vs Riak vs HBase vs Membase vs Neo4j comparison</a></p>
+</article>
+
+<article>
+<h3>Большие базы и NoSQL</h3>
+<p>например MySQL<br/>
+- handlersocket - доступ по PK внутрь таблицы<br/>
+- memcached plugin - доступ по PK внуть InnoDB</p>
+<p><a href="http://l-o-n-g.livejournal.com/153756.html">Использование MySQL как NoSQL — История о том, как достичь 750,000 запросов в секунду</a></p>
+<p><a href="http://dev.mysql.com/tech-resources/articles/nosql-to-mysql-with-memcached.html">NoSQL to MySQL with Memcached</a></p>
+</article>
+
+<article>
+<img class="centered" style="width:100%" src="files/mysql_handler_socket.png"/>
+</article>
+
+<article>
+<img class="centered" style="width:100%" src="files/memcached_api_4_innodb.png"/>
+</article>
+
+<article>
+<h3>Индексы</h3>
+<p>b-tree</p>
+<p>unique</p>
+<p>bitmap</p>
+<p>full text</p>
+<p>inverted index</p>
+<p>внешние / Lucene</p>
+<p>etc ...</p>
+</article>
+
+<article>
+<h3>Читаем схемы ...</h3>
+<p><a href="http://highscalability.com/blog/category/example">High Scalability: Real Life Architectures</a></p>
+</article>
+
+<article>
+<h3>Twitter : FlockDB</h3>
+<p><a href="http://engineering.twitter.com/2010/05/introducing-flockdb.html">Introducing FlockDB</a></p>
+<div><img style="width:30%" src="files/tw_001.png"/><img style="width:65%" src="files/tw_002.png"/></p>
+</article>
+
+<article>
+<h3>Gizzard: a library for creating distributed datastores</h3>
+<p><a href="https://github.com/twitter/gizzard">https://github.com/twitter/gizzard</a></p>
+<div>
+<img style="width:30%" src="files/tw_003.png"/>
+<img style="width:30%" src="files/tw_004.png"/>
+<img style="width:30%" src="files/tw_005.png"/>
+</div>
+</article>
+
+<article class="smaller">
+<h3>Finagle: A Protocol-Agnostic RPC System</h3>
+<div><img style="width:100%" src="files/tw_008.png"/></div>
+<p><a href="https://github.com/robey/kestrel">https://github.com/robey/kestrel</a> Kestrel - ... simple, distributed message queue ...</p>
+</article>
+
+<article>
+<h3>SpiderDuck: Twitter's Real-time URL Fetcher</h3>
+<div><img style="height:100%" src="files/tw_006.jpg"/></div>
+</article>
+
+<article class="smaller">
+<h3></h3>
+<p>Memcached: This is a distributed cache used by the fetchers to temporarily store robots.txt files.</p>
+<p>Metadata Store: This is a Cassandra-based distributed hash table that stores page metadata and resolution information keyed by URL, as well as fetch status for every URL recently encountered by the system. This store serves clients across Twitter that need real-time access to URL metadata.</p>
+<p>Content Store: This is an HDFS cluster for archiving downloaded content and all fetch information.</p>
+</article>
+
+<article>
+<h3>Где читать еще?</h3>
+<p><a href="http://engineering.foursquare.com/">http://engineering.foursquare.com/</a> - FourSquare engineering blog</p>
+<p><a href="http://engineering.linkedin.com/blog">http://engineering.linkedin.com/blog</a> - LinkedIn engineering blog</p>
+<p><a href="http://engineering.twitter.com/">http://engineering.twitter.com/</a> - Twitter engineering blog</p>
+<p><a href="http://blog.stackoverflow.com/category/server/">http://blog.stackoverflow.com/category/server/</a> - StackOverflow blog</p>
+<p> etc ... просто погуглите и найдете !</p>
+</article>
+
+<article class="smaller">
+    <h3>Итого</h3>
+<p>Базы данных это:</p>
+<ul>
+<li>старо и банально - со времен царей Египетских...</li>
+<li>интересно и ново - NoSQL, 2011, etc ...</li>
+<li>сложно и неподъемно - N * DVD инсталляция и только DBA етс</li>
+<li>просто и мгновенно - brew install redis ...</li>
+<li>научно и мощно - реляционная теория / CAP теорема ...</li>
+<li>"не рокет сайнс!" - get(key), put(key,value) ...</li>
+<li>далеко - кластера амазона ... </li>
+<li>прямо тут - sqlite / localStorage в браузере и телефоне</li>
+<li>...</li>
+</ul>
+
+<p>Pulser: базы данных это осозноваемо, интересно и полезно!</p>
+
+<p>Смотрите, гуглите, а, главное, <span class="green"><em>пользуйтесь</em></span> базами данных.</p>
+
+<p>Спасибо, что вы пришли на курс.</p>
+<p>Спасибо за домашки!!!</p>
+
+</article>
+
+      <article>
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse/index.html">http://fluffypulser.ru/static/dbcourse/index.html</a></li>
+        </ul>
+      </article>
+
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

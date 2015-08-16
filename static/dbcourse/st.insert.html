@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Storage Log</title>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    <title>Пример localStorage: добавим Посещаемость лекций</title>
+    <script type="text/javascript">
+
+        // previous lections
+        window.localStorage.setItem("data.01", "33");
+        window.localStorage.setItem("data.02", "34");
+        window.localStorage.setItem("data.03", "27");
+        window.localStorage.setItem("data.04", "24");
+        window.localStorage.setItem("data.05", "25");
+        window.localStorage.setItem("data.06", "21");
+        window.localStorage.setItem("data.07", "15");
+        window.localStorage.setItem("data.08", "15");
+        window.localStorage.setItem("data.09", "20");
+
+        newLine = function() {
+            var k = document.getElementById("key").value;
+            var v = document.getElementById("val").value;
+            window.localStorage.setItem(k, v);
+        }
+
+        removeLine = function() {
+            var k = document.getElementById("key").value;
+            window.localStorage.removeItem(k);
+        }
+
+    </script>
+
+</head>
+
+<body>
+<header>
+    <h3>Пример localStorage: добавим Посещаемость лекций</h3>
+</header>
+<div>key: <input type="text" name="key" id="key"/>
+    val: <input type="text" name="val" id="val"/>
+    <input type="button" value="add" onclick="newLine()"/>
+    <input type="button" value="remove" onclick="removeLine()"/>
+    <input type="button" value="clear" onclick="window.localStorage.clear();"/>
+    <a href="st.insert.html">reload</a></div>
+<pre>
+<script>
+    var t = window.localStorage;
+    for (var i = 0; i < t.length; i++) {
+        document.write('' + t.key(i) + ' : ' + t.getItem(t.key(i)) + '\n');
+    }
+</script>
+</pre>
+</body>
+
+</html>

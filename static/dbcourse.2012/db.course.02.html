@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+<!--
+<script src="http://yandex.st/highlightjs/6.1/highlight.min.js"></script>
+<script src="http://yandex.st/highlightjs/6.1/languages/java.min.js"></script>
+<link rel="stylesheet" href="http://yandex.st/highlightjs/6.1/styles/idea.min.css">
+<script>hljs.initHighlightingOnLoad();</script>
+-->
+
+<style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+    
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть вторая
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2012-10-01
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<!-- 
+
+<article>
+<h2>Цель курса</h2>
+<p>Познакомить слушателей с:</p>
+<ul>
+<li>принципами построения систем хранения данных</li>
+<li>распространенные проблемы и варианты их решения</li>
+<li>навыки оценки и работы с готовыми реализациями</li>
+</ul>
+</article>
+
+-->
+
+<article>
+<h3>Домашнее задание, часть #1</h3>
+<p>Своя база данных на Java (Ruby/Python/etc)</p>
+<ul>
+<li>телефонная книга - фио + телефон - на arrayList</li>
+<li><span class="red">CRUD</span> операции, в формате add (ivanov, Иванов, +7921AAABBCC) / get (ivanov)</li>
+<li>доступ к через какой-либо api ( console / http / socket - на выбор )</li>
+<li>возможность сохранить в файл, дабы можно было перезапустить сервер ( flush / commit / snapshot )</li>
+</ul>
+<p class="green">Из чего состоит получившаяся база?</p>
+</article>
+
+<article class="smaller">
+<h3>Коллекция</h3>
+<p>Хранить данные в памяти</p>
+<p>ArrayList</p>
+<p class="blue">get o(1), insert o(n), del o(n), append o(1)/o(n)</p>
+<p>LinkedList</p>
+<p class="blue">get o(n), insert o(n), del o(n), append o(1)</p>
+<p>Map / ассоциативный массив</p>
+<pre>
+public void add(final Record);
+public void put(final K key, final V value);
+public byte[] get(String key);
+public Record get(Key key);
+</pre>
+<p class="green">А как хранить внутри? Запись vs Строка vs byte[]</p>
+<p class="green">Кстати: Можно использовать готовую от языка, можно написать свою.</p>
+</article>
+
+<article class="smaller">
+<h3>Парсер</h3>
+<p>Понять что хочет пользователь, обработать данные, понять команду, передать в коллекцию.</p>
+<p>Трансформация внешнего API к внутреннему и обратно</p>
+<pre class="smaller">
+        System.out.println("create &lt;key&gt; &lt;name&gt; &lt;phone&gt; - add record to db");
+        System.out.println("delete <key> - delete record from db");
+        System.out.println("retrieve <key> - get record from db");
+        System.out.println("update <key> <name> <phone> - update record in db");
+        System.out.println("commit - save db");
+        System.out.println("q - exit");</pre>
+<pre>if (arr[0].equals("exit")) {
+  System.exit(0);
+}   
+if (arr[0].equals("create")) {
+  this.create(arr[1], arr[2], Integer.parseInt(arr[3]));
+  return;
+}</pre>
+</article>
+
+<article class="smaller">
+<h3>Набор допустимых команд</h3>
+<p>Добавить</p>
+<p>Получить</p>
+<p>Обновить</p>
+<p>Удалить</p>
+<p>C R U D</p>
+<pre>MyDatabase.saveRecord(Record r)
+
+vs
+
+arr[0].equals("create")</pre>
+</article>
+
+<article>
+<h3>Интерфейс</h3>
+<p>Задачи:</p>
+<p>Возвращать данные из нашей базы</p>
+<p>Принимать команды от пользователя и отправлять в базу</p>
+<p>Вызывать парсер</p>
+<p>Обеспечивает доступ пользователя к базе</p>
+<p class="green">Варианты: консоль, командная строка, http, socket</p>
+</article>
+
+<article>
+<h3>Сохранение на диск</h3>
+<p>Serialize / Маршализация</p>
+<p>Коллекция в памяти - сложная, нелинейная структура (размер, указатели, данные в произвольных местах памяти)</p>
+<p>Внешняя память, передача по сети - линейны, нужно преобразовать граф в последовательность и обратно</p>
+</article>
+
+<article>
+<h3>Разбиение на группы</h3>
+<p>Устройство HashMap в Java</p>
+<p class="green">... аналогично записной книжке ...</p>
+<p>Набор бакетов, каждый бакет - значение хеша + список пар (ключ, значение).</p>
+<p>При укладке берем hash от ключа, определяем бакет, перебираем последовательно элементы списка</p>
+<p>Если найден ключ - обновляем значение</p>
+<p>Если дошли до конца и не нашли, добавляем в конец списка</p>
+<p>Событие рехеширования и перекладки по бакетам</p>
+<p>константный hash у ключей - плохо, всегда один бакет и o(n)</p>
+</article>
+
+<article>
+<q>Практическая полезность такой базы?</q>
+<div class="author"> студент</div>
+</article>
+
+<article>
+<p>Ценность базы определяется ценностью данных, находящихся в ней.</p>
+<p>Ценность данных - сравнительная стоимость их получения из базы по сравнению со стоимостью получения другим путем.</p>
+<p/>
+<p/>
+<h3><span class="green">База полезна, если получить данные из нее эффективнее, чем получить эти же данные другим путем.</span></h3>
+</article>
+
+<article class="smaller">
+<h3>Примеры ...</h3>
+<p/>
+<img src="files/sine-formula.png"/>
+<img src="files/log-formula.png"/>
+<p>Таблицы математических функций - <a href="http://en.wikipedia.org/wiki/Mathematical_table">wiki:Mathematical table</a></p>
+<p>Первые таблицы тригонометрических функций - Гиппарх - 190-120 BC - не сохранились</p>
+<p>Птоломей - 90-168 г.н.э. (<a href="http://en.wikipedia.org/wiki/Ptolemy%27s_table_of_chords">Ptolemy's table of chords</a>) - дожили до наших дней</p>
+<p>Во время войны - активно считались таблицы для артиллерии ...</p>
+<p><a href="http://www.ktoigde.ru/table/Bradis.htm">Таблицы Брадиса</a> - ключ - аргумент (угол или число) с некоей точностью, значение - значение функции от этого числа.</p>
+<p>синусы, косинусы, тангенсы, котангенсы, логарифмы, степени 10, площадь круга етс ...</p>
+</article>
+
+<article class="smaller">
+<h3>Как пользоваться таблицей логарифмов?</h3>
+<p>Нужен логарифм от 1.257 по основанию 10</p>
+<img src="files/log-formula.png"/>
+<ul>
+  <li>Ищем ряд для 1.25</li>
+  <li>Ищем колонку 7 (1.257)</li>
+  <li>Получаем ответ 0.099335</li>
+</ul>
+<table>
+  <tr><th>N</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th class="red">7</th></tr>
+    <tr><th>1.23</th><td>.089905</td><td>.090258</td><td>.090611</td><td>.090963</td><td>.091315</td><td>.091667</td><td>.092018</td><td>.092370</td></tr>
+    <tr><th>1.24</th><td>.093422</td><td>.093772</td><td>.094122</td><td>.094471</td><td>.094820</td><td>.095169</td><td>.095518</td><td>.095866</td></tr>
+    <tr><th class="red">1.25</th><td>.096910</td><td>.097257</td><td>.097604</td><td>.097951</td><td>.098298</td><td>.098644</td><td>.098990</td><td class="green">.099335</td></tr>
+    <tr><th>1.26</th><td>.100371</td><td>.100715</td><td>.101059</td><td>.101403</td><td>.101747</td><td>.102091</td><td>.102434</td><td>.102777</td></tr>
+    <tr><th>1.27</th><td>.103804</td><td>.104146</td><td>.104487</td><td>.104828</td><td>.105169</td><td>.105510</td><td>.105851</td><td>.106191</td></tr>
+</table>
+<p>Что быстрее: посчитать или найти в таблице?</p>
+<div class="source">Source: <a href="http://myhandbook.info/table_commonlog.html">myhandbook.info: Common Logarithms Table</a></div>
+</article>
+
+<article class="smaller">
+<h3>Что быстрее: посчитать или подглядеть по табличке?</h3>
+<p>Creating tables stored in random access memory is a <span class="green">common code optimization technique in computer programming</span>, where the use of such tables speeds up calculations in those cases where a <span class="red">table lookup is faster than the corresponding calculations</span> (particularly if the computer in question doesn't have a hardware implementation of the calculations). In essence, <span class="green">one trades computing speed for the computer memory space required to store the tables</span>.</p>
+<div class="source">Source: <a href="http://en.wikipedia.org/wiki/Mathematical_table">wiki:Mathematical table</a></div>
+</article>
+
+
+<article class="smaller">
+<h3>Latency Comparison Numbers</h3>
+<pre class="smaller">L1 cache reference                          0.5 ns
+Branch mispredict                             5 ns
+L2 cache reference                            7 ns             14x L1 cache
+Mutex lock/unlock                            25 ns
+
+Main memory reference                       100 ns            20x L2 / 200x L1 cache
+
+Compress 1K bytes with Zippy              3,000 ns
+
+Send 1K bytes over 1 Gbps network        10,000 ns   0.01 ms
+
+Read 4K randomly from SSD*              150,000 ns   0.15 ms
+
+Read 1 MB sequentially from memory      250,000 ns   0.25 ms
+
+Round trip within same datacenter       500,000 ns   0.5  ms
+
+Read 1 MB sequentially from SSD*      1,000,000 ns   1    ms  4X memory
+
+Disk seek                            10,000,000 ns  10    ms 20x datacenter roundtrip
+
+Read 1 MB sequentially from disk     20,000,000 ns  20    ms 80x memory, 20X SSD
+
+Send packet CA->Netherlands->CA     150,000,000 ns 150    ms
+</pre>
+<div class="source">source: Numbers everyone should know by Jeff Dean 
+(<a href="https://gist.github.com/2841832">version 1</a> / 
+<a href="https://gist.github.com/2843375">version 2</a>)
+</div>
+</article>    
+
+<article>
+<h3>Какие бывают key-value storage?</h3>
+<p>Регистры процессора - ключи имена регистров, значения - целое число, лежащее в регистре.</p>
+<p>in-process - обычный Map в памяти вашего процесса</p>
+<p>in-memory - Map, живущий вне вашего процесса и доступный по какому-то API снаружи</p>
+<p>on-disk - Map, способный пережить отключение электричества (persistent memory)</p>
+<p>доступный по сети - несколько компьютеров могут обращаться к нему по сети</p>
+</article>
+
+<article>
+<h3>Есть ли смысл писать свою?</h3>
+<p class="green">Смотрите затраты - бенефиты ...</p>
+
+<p>in-memory:<br/>
+- Memcached (<a href="http://en.wikipedia.org/wiki/Memcached">wiki</a> 2003)<br/>
+- Redis (<a href="http://redis.io/">redis.io</a>) - очень модный сейчас Key-Value</p>
+<p/>
+<p>on-disk:<br/>
+- dbm (<a href="http://en.wikipedia.org/wiki/Dbm">wiki</a>) - 1979-ый год, неотъемлимая часть *NIX<br/>
+- Berkeley DB (<a href="http://en.wikipedia.org/wiki/Berkeley_DB">wiki</a>) - 1996, сейчас часть Oracle Corp.<br/>
+- <a href="http://fallabs.com/tokyocabinet/">Tokio Cabinet</a> / <a href="http://fallabs.com/kyotocabinet/">Kyoto Cabinet</a><br/>
+- <a href="http://code.google.com/p/leveldb/">LevelDB</a> by Google - 2011-ый год<br/>
+... на страничке http://en.wikipedia.org/wiki/Dbm есть неполный список ...<br/>
+... а можете свой написать ... :)</p>
+
+</article>
+
+
+<article class="smaller">
+<h3>LiveJournal ...</h3>
+<p>Bradley Joseph "Brad" Fitzpatrick ... родился в 1980-ом</p>
+<p>15 апреля 1999-го года - запустил сервис "дабы друзья по ВУЗу знали чем занимаюсь" ...</p>
+<p>История LJ по годам: <a href="http://en.wikipedia.org/wiki/Timeline_of_LiveJournal">wiki: LiveJournal timeline</a></p>
+<p>November 4, 2001 - первый full-time сотрудник avva</p>
+<p>April 11, 2003 - 1 миллион аккаунтов</p> 
+<p>May 22, 2003 - разработан Memcached</p>
+<p></p>
+
+<p><a href="http://highscalability.com/livejournal-architecture">Архитектура LiveJournal 2007</a></p>
+</article>
+
+<article>
+<h3>Забавное про LJ ...</h3>
+<p><img class='centered' style='height: 500px' src='files/lj-age-stats.png'></p>
+<div class="source"><a href="http://www.livejournal.com/stats.bml">LJ Stats</a> за 29 сентября 2012-го года</div>
+</article>
+
+<article>
+<h3>Клиент-сервер архитектура</h3>
+<img class="centered" src="files/Diagramly-client-server.jpg" width="486"/>
+<p>Зачем нужен сервер?</p>
+<p>Формат данных прямо из базы непонятен клиенту.</p>
+<p>На сервере CPU нагрузка - обсчитать что-то, проверить правила етс.</p>
+<p>База данных "чужая" и неизменная, а на сервере можно запрограммировать что хотим.</p>
+</article>
+
+<article>
+<h3>Высоконагруженный сервер</h3>
+<p>Один сервер не справляется:<br/>
+- поставим умный router (balancer)<br/>
+- поставим несколько серверов за balancer-ом</p>
+<img class="centered" src="files/Diagramly-client-N-servers.jpg"/>
+</article>
+
+<article class="smaller">
+<h3>Больше клиентов, больше нагрузки</h3>
+<p>Зачем считать каждый раз, если можно в кеш (Map в памяти) положить?</p>
+<p/>
+<img class="centered" src="files/Diagramly-client-N-servers-cache.jpg"/>
+<pre>result process(request) {
+   value = cacher.get(request);
+   if(value > 0) return value;
+   value = renderPage(request);
+   cache.put(request,value);
+   return value;
+}</pre>
+<p class="green">Кстати: очень сильно уменьшилась нагрузка на базу.</p>
+</article>
+
+<article>
+<h3>Чем плох cache per server?</h3>
+<p>В каждом из них встречаются одинаковые значения</p>
+<p>Одинаковые = много раз посчитанные = нагрузка на CPU</p>
+<p>У него ограничен размер = мало значений можно положить</p>
+<p/><p/>
+<h3>Ответ очевиден <span class="green">(ага, в 2012-ом году...)</span> - распределенный cache</h3>
+<p>Значения считаются один раз, вне зависмости от количества серверов</p>
+<p>Уникальны на уровне кластера - нет повторов - больше можно хранить</p>
+<p>Общий размер = сумме каждого per server кеша</p>
+</article>
+
+<article class="smaller">
+<h3>Как сделать распределенный cache?</h3>
+<p>Поставим доступные по сети KV storages: kv01, kv02, kv03</p>
+<p>Напишем библиотечку cacher</p>
+<pre>val servers[] = ['kv01','kv02','kv03'];
+cacher {
+  put (key,value) {
+    n = hash(key) mod servers.length;
+    remotePut(n,key,value);
+  }
+  get (key) {
+    n = hash(key) mod servers.length;
+    return remoteGet(n, key);
+  }
+}</pre>
+<p>Надо больше?<br/>Поставь kv01 .. kv32 и на каждом по 4Mb памяти = 128Mb общей памяти.</p>
+<p>Памяти все равно не хватает?<br/>Выпихивай "старые" данные (<a href="http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used">LRU / Least Recently Used</a>).</p>
+<p>"Залипают" старые данные?<br/>
+Добавь поддержу TTL (time to live), e.g. хранить данные в cache 30 секунд.</p>
+</article>
+
+<article class="smaller">
+<h3>Мощная архитектура</h3>
+<img class="centered" src="files/Diagramly-client-N-servers-R-cache.jpg"/>
+<pre>Balancer - выбирает на какой сервер идти (round-robin / близость / нагруженность)
+Server - через клиентскую библиотеку выбирает ноду в Cache и хранит там посчитанное
+Cache - контролирует свою память и выкидывает самые старые (LRU) или устаревшие (TTL) данные
+</pre>
+</article>
+
+<article class="smaller">
+<h3>Memcached - http://memcached.org/</h3>
+<p>Memcached is an in-memory key-value store for small chunks of arbitrary data (strings, objects) from results of database calls, API calls, or page rendering.</p>
+<p>Memcached was originally developed by Brad Fitzpatrick for LiveJournal in 2003.</p>
+<p>Contributed: 80+ человек</p>
+<p>Больше информации: <a href="http://yandex.ru/yandsearch?text=memcached">yandex:memcached</a></p>
+<p>Где используется?<br/>
+- YouTube, Reddit, Zynga, Facebook, Orange, Twitter, Wikipedia.<br/>
+- Heroku (Couchbase-managed memcached add-on) service<br/>
+- Google App Engine, AppScale, Windows Azure and Amazon Web Services - own memcached service API implementation.</p>
+
+<div class="source">Source: <a href="http://en.wikipedia.org/wiki/Memcached">wiki:Memcached</a></div>
+</article>
+
+<article class="smaller">
+<h3>Memcached</h3>
+<ul>
+<li>данные в оперативной памяти одного или нескольких из множества доступных серверов</li>
+<li>Распределение путем сегментирования по значению хэша ключа по аналогии с сокетами хэш-таблицы.</li>
+<li>Клиентская библиотека, используя ключ данных, вычисляет хэш и использует его для выбора соответствующего сервера.</li>
+<li>В API только базовые функции: добавление, удаление, обновление и получение объекта (CRUD).</li>
+<li>ключ строка - строка до 250 байт, значение - просто поток байт</li>
+<li>встроенный опциональнй TTL (до 30 суток), если не задан, то "пока память не кончится - LRU"</li> 
+<li>everything is o(1) </li>
+<li>half smart client, half smart server</li>
+<li>сервера memcached ничего не знаю друг о друге, вся информация в клиенте</li>
+</ul>
+<p class="green">NB: невозможно из серверов получить список всех ключей - это feature.</p>
+</article>
+
+<article class="smaller">
+<h3>Memcached - что взрывается?</h3>
+<p class="blue">Список серверов в клиенте - добавить новый сервер = перезапусти всех клиентов.</p>
+<p class="green">Ответ: вынеси клиентскую библиотеку в отдельный сервис-прокси поверх memcached.</p>
+<p/>
+<p class="blue">Список серверов == hash функция - добавил новый сервер - не найдешь старые данные.</p>
+<p class="green">Ответ:- устойчивые функции хеширования.</p>
+<p/>
+<p class="blue">Перезапуск кластера - всё только в памяти = пустой cache = все идут в базу, база "ложится".</p>
+<p class="green">Ответ 1: "разогревай" cache до того, как запускать пользователей.</p>
+<p class="green">Ответ 2: запоминай состояние на диск = "persistent" KV storage на диске (redis/leveldb/tokyo).</p>
+</article>
+
+<article class="smaller">
+<h3>Memcached - практика</h3>
+<p>Установить:<br/><a href="https://www.google.ru/search?q=memcached+install">google:install memcached</a> / <a href="http://tugdualgrall.blogspot.com/2011/11/installing-memcached-on-mac-os-x-and.html">Tug's Blog: Installing Memcached on Mac OS X and using it in Java.</a></p>
+<pre>
+curl -O http://www.monkey.org/~provos/libevent-1.4.14-stable.tar.gz
+tar xzvf libevent-1.4.14-stable.tar.gz
+cd libevent-1.4.14-stable
+./configure &amp;&amp; make &amp;&amp; make verify &amp;&amp; sudo make install  
+curl -O http://memcached.googlecode.com/files/memcached-1.4.10.tar.gz
+tar xzvf memcached-1.4.10.tar.gz
+cd memcached-1.4.10
+./configure &amp;&amp; make &amp;&amp; make test &amp;&amp; sudo make install
+
+--- Запуск:
+/usr/local/bin/memcached -d -p 11211
+--- Использование через telnet
+pulser$ telnet localhost 11211
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+set user:9091:city 0 30 6 -- здесь: ключ флаги TTL str.length
+Moscow
+STORED
+^]
+telnet> quit
+Connection closed.</pre>
+</article>
+
+<article class="smaller">
+<pre>
+import java.io.*;
+import java.util.logging.*;
+import net.spy.memcached.AddrUtil; // spymemcached library
+import net.spy.memcached.MemcachedClient;
+
+public class SpyTest {
+  public static void main(String[] args) {
+    try {
+      System.out.print("Enter the new key : ");
+      final BufferedReader reader = new BufferedReader(
+          new InputStreamReader(System.in));
+      final String key = reader.readLine();
+      System.out.print("Enter the new value : ");
+      final String value = reader.readLine();
+      final MemcachedClient cache = new MemcachedClient(
+          AddrUtil.getAddresses("127.0.0.1:11211"));
+      // read the object from memory
+      System.out.println("Get Object before set :"+ cache.get(key)  );  
+      // set a new object            
+      cache.set(key, 0, value );
+      System.out.println("Get Object after set :"+ cache.get(key)  );  
+    } catch (IOException ex) {
+      Logger.getLogger(SpyTest.class.getName()).log(Level.SEVERE, null, ex);
+      System.exit(0);
+    }   
+    System.exit(0);
+  }   
+}
+</pre>
+</article>
+
+<article class="smaller">
+<h3>Функция хеширования в клиенте? Как бороться.</h3>
+<p>Делаем маленькое приложение внутри которого функция хеширования</p>
+<p>с одной стороны запросы клиентов на один адрес, на один порт</p>
+<p>с другой стороны коннекты ко всем шардам базы данных</p>
+<p>внутри только функция шардирования и список шардов (данных нет!)</p>
+<p/>
+<p>Чем плохо?<br/>
+- доп. накладные расходы - на один хост дальше сетевой путь = +2 сетевые задержки,<br/>
+- большое количество траффика через одну точку - может захлебнуться сеть,<br/>
+- Single Point Of Failure - завалился раутер = совсем никаких данных не получат <span class="red">все</span> клиенты</p>
+</article>
+
+<article class="smaller">
+<h3>Функция хеширования</h3>
+<p class="blue">Главное требование - равномерность распределения значений по бакетам</p>
+
+<h3>Хеширование по остатку от деления</h3>
+<pre>
+values = [0,1,2,4,5,6,8,9];
+-- сделали функцию, разложили по ведеркам
+f = x % 2;
+buckets = { 0 -&gt; 0,2,4,6,8 }, {1 -&gt; 1,5,9 }
+-- что-то неравномерно получилось, память напрягает, хочу ровнее
+-- поменяюю чуточку функцию
+f = x % 3;
+buckets = { 0 -&gt; 0, 6, 9} { 1 -&gt; 1,4 } { 2 -&gt; 2, 5, 8 }
+-- переезды: 3 "желанных" - 2, 5, 8 и 2 "ну зачем" 4, 9
+-- причем 9 полезло "в загруженный" бакет ...</pre>
+<p>А проблема ли это?</p>
+<p><a href="http://blog.foursquare.com/2010/10/05/so-that-was-a-bummer/">Foursquare: So, that was a bummer.</a>, Oct 05, 2010 ...</p>
+<p>... one of these shards was performing poorly because a disproportionate share of check-ins ... we introduced a new shard, intending to move some of the data from the overloaded shard to this new one ... For reasons that are not entirely clear to us right now, though, the addition of this shard caused the entire site to go down ... </p>
+
+</article>
+
+<article class="smaller">
+<h3>Хеширование по префиксу</h3>
+<pre>
+f = первая цифра телефона
+
+делаем 10 бакетов, раскладываем
+
+выясняется, что у нас много юр. лиц
+
+получаем, что бакеты 3 и 7 переполнены, а остальные недогружены
+
+аналогичная ситуация:
+- первая буква фамилии
+- район города
+- страна
+- класс персонажей
+- етс.
+</pre>
+<p/>
+<p class="blue">Главное требование - равномерность распределения по бакетам реальных данных ...</p>
+<p class="red">... а данные распределены не равномерно - даже при хорошей функции - количество в бакетах будет разное</p>
+<p class="green">... нужны динамические адаптивны функции хеширования, подстраиваующиеся к данным ...</p>
+</article>
+
+<article class="smaller">
+<h3>Устойчивое хеширование (Consistent Hashing)</h3>
+<p><a href="http://en.wikipedia.org/wiki/Consistent_hashing">wiki: Consistent Hashing</a></p>
+<p><a href="http://google.com/search?q=hash+ring">Google: Hash Ring</a></p>
+<pre>
+bucket_end = [ 100, 200, 300, 400 ]
+-- "0..99, 100..199, 200..299, 300..399"
+
+int bucket ( key : int ) {
+   h = key % max ( bucket_end[] )
+   for ( i = 0; i < bucket_end.length; i++ ) {
+     if ( h < bucket_end[i] ) {
+        return i;
+     }
+   }
+   return 0;
+}
+
+-- у нас переполняется бакет 200-299 ... 
+-- добавим и подвигаем ведерки - "200-274, 275-324, 325-399" 
+bucket_end = [ 100, 200, 275, 325, 400 ]
+</article>
+
+<article class="smaller">
+<pre>public class A {
+
+  int hash(int[] ends, int key) {
+     int max = 0;
+     for (int i : ends)
+         if ( i &gt; max ) max = i; // ищем верхнюю границу 
+     int h = key % max; // хешируем по границе
+     for (int i = 0; i &lt; ends.length; i++) {
+       if ( h &lt; ends [i] )
+         return i; // ищем бакет, в который попадает hash
+     }
+     return 0; } // не нашли? - кладем в первый бакет
+
+  // раскладываем по бакетам и красиво выводим на экран что получилось
+  void dump(int[] ends, int[] probes){
+    // tree map - ключи отсортированы по возрастанию - первым будет бакет 0 ...
+    Map&lt;Integer,List&lt;Integer&gt;&gt; m = new TreeMap&lt;Integer,List&lt;Integer&gt;&gt;();
+    for (int key: probes) {
+      int h = hash(ends, key);
+      if ( m.get(h) == null ) m.put(h, new ArrayList&lt;Integer&gt;());
+      m.get(h).add(key);
+    }
+    System.out.println(m); 
+  }
+</article>
+<article class="smaller">
+<pre>
+  static int[] ends1 = new int[]{ 100, 200, 300, 400};
+
+  static int[] ends2 = new int[]{ 90, 200, 275, 310, 400};
+
+  public static void main(String[] args) throws Exception {
+    int[] probes = new int[] { 7, 67, 127, 187, 215, 260, 285, 
+       290, 299, 312, 315, 325, 370, 490, 800, 825 };
+    new A().dump(ends1, probes);
+    new A().dump(ends2, probes);
+  }
+}
+-- первый запуск - "100, 200, 300, 400"
+{0=[7, 67, 490, 800, 825], 1=[127, 187], 
+   2=[215, 260, 285, 290, 299], 3=[312, 315, 325, 370]}
+-- размеры 5, 2, 5, 4
+
+-- второй - "90, 200, 275, 310, 400"
+{0=[7, 67, 800, 825], 1=[127, 187, 490], 
+   2=[215, 260], 3=[285, 290, 299], 4=[312, 315, 325, 370]}
+-- размеры 4, 3, 2, 3, 4</pre>
+<p/>
+<p>В реальном мире - кольцо может быть длиной не в 400 "ячеек", а в 2^160 .. </p>
+<p>И в таком "кольце" вы можете расположить очень большое количество нод.</p>
+</article>
+
+<article>
+<h3>Consistent Hashing по взрослому</h3>
+<img class="centered" src="files/riak-ring.png"/>
+<div class="source">Source: <a href="http://wiki.basho.com/What-is-Riak%3F.html">Basho: What is Riak?</a></div>
+</article>
+
+<article class="smaller">
+<h3>Каскадирование hash функций</h3>
+<pre>f = h1(h2(h3(h4(h5(key))))); ...
+f = md5sum(key.hashCode()) % num_buckets ...
+
+Делаем двух уровневую структуру хранения:
+      - 20 нод, внутри каждой ноды 60 бакетов
+а) balancer внутри которого h1 = k % 20
+b) на входе в ноду h2 = k % 60</pre>
+<div class="build">
+<pre>
+... запускаем систему и смотрим статистику нагрузки ...
+
+почему-то на ноде #0 данные только в бакетах 0, 20, 40 ... 
+... и *нет* данных во всех других бакетах ...
+
+в ноде #1 - 1, 21, 41 ... и все остальные пусты</pre>
+<p class="red">Почему?</p>
+<p class="green">Ответ: ой, используем зависимые функции ...</p>
+<p><a href="http://www.michaelnielsen.org/ddi/how-to-crawl-a-quarter-billion-webpages-in-40-hours/">DDI: Как я укачал 250 млн страниц за 40 часов и $580</a><br/>
+<a href="http://en.wikipedia.org/wiki/K-independent_hashing">wiki: K-independent hashing</a><br/>
+<a href="http://simple.wikipedia.org/wiki/Coprime">wiki: Compime / Взаимно простые числа</a> - когда единственный общий множитель единица</p>
+</div>
+</article>
+
+<article class="smaller">
+<h3>Persistent Key-Value: Redis</h3>
+<ul>
+<li>key-value хранилище</li>
+<li>хранит базу данных в оперативной памяти (была возможность swap, признали ошибкой, оторвали)</li>
+<li>механизмами снимков и журналирования для обеспечения постоянного хранения</li>
+<li>master-slave репликация данных на несколько узлов</li>
+</ul>
+<p><a href="http://redis.io/">http://redis.io/</a> / <a href="http://ru.wikipedia.org/wiki/Redis">wikipedia:Redis</a> / <a href="http://yandex.ru/yandsearch?text=redis">yandex:Redis</a></p>
+<p><a href="http://redis.io/commands">http://redis.io/commands</a> - 144 (было 124 в 2011-ом) разных комманды ( o_O )
+</article>
+
+<article>
+<h3>Redis - почему лучше ...</h3>
+<p><a href="http://openmymind.net/2012/1/23/The-Little-Redis-Book/">The Little Redis Book</a>. Есть перевод на русский.</p>
+<p>БОльше чем key-value ...</p>
+<p>Структуры данных:<pre>
+- строки (strlen, append, getrange)
+- числа - атомарные incr / decr / incrby
+- hashes - hset / hmset (users:goku age 40 weight 85)
+   / hget users:goku weight
+- lists - rpush / ltrim
+- sets
+- sorted sets 
+- группировка команд в одну </pre>
+</p>
+<p><span class="blue">NB:</span> Redis однопоточный внутри - меньше lock / synchronize = быстрее. </p>
+</article>
+
+<article class="smaller">
+<h3>Надежность: Master / Slave репликация</h3>
+<p>Делаем копию базы, налету, средствами самой базы.</p>
+<p>Либо каждую полученную команду изменения мастера отправляем на slave - log replication</p>
+<p>Может быть синхронным (клиенту не говорим ОК пока slave не сказал "всё записано, босс")</p>
+<p>Может быть асинхронным (master - OK клиенту, а slave этого и не увидел (еще)).</p>
+<p>Либо раз в какой-то период делаем snapshot базы и отправляем на slave</p>
+<p>При snapshot - запаздывание может быть больше (но с этим можно жить - см. Таблицы Брадиса и их переиздание раз в N лет :) ).</p>
+</article>
+
+<article class="smaller">
+<h3>Master / Slave - зачем?</h3>
+<p>А балансировка нагрузки - запись через 1 master, чтение через 5 slaves</p>
+<p>"Надежность" - master вырубился, выбираем одного из живых slave и апгрейдим до master, начинаем писать туда.</p>
+<p>Восстановившись старый мастер становится slave, либо "нагоняет" временного мастера по логам и возвращается на место master</p>
+<p/>
+<h3>В чем траблы?</h3>
+<p>Запаздывание slave относительно мастер в случае асинхронной репликации</p>
+<p>Невозможность принять update, когда синхронная репликация на slave, а slave недоступен</p>
+<p>Если быстро пишем, то запаздывание может накапливаться и "слейв не успевает"</p>
+<p>Дополнительная нагрузка на сеть - данные копируются на slave-ов. (Можно делать деревья из slave, но там задержки еще больше)</p>
+</article>
+
+<article class="smaller">
+<h3>Домашнее задание, часть вторая</h3>
+<h4>Надежная, масштабируемая, распределенная база</h4>
+<p class="green">У вас уже есть работающая "нода" - отдельно стоящий key-value storage</p>
+<p>Надо к нему добавить:<br/>
+- master-slave репликацию ( прокидывание команд add / update / del на slave )<br/>
+- роутинг ( у нас есть master и slave - на мастер add/update/del, на slave - retrieve)<br/>
+- раз есть роутинг - добавим шардирование - часть ключей на одних нодах, часть на других<br/>
+</p>
+</article>
+
+<article>
+<h3>Большая сетевая база</h3>
+<p><img src="files/db-cluster.png" style="height: 500px" /></a>
+</article>
+
+<article>
+<h3>Архитектура ноды</h3>
+<p><img src="files/db-node.png" style="height: 500px" /></a>
+</article>
+
+<article class="smaller">
+<p><a href="">http://voituk.kiev.ua/2008/12/22/simple-reliable-java-http-server/</a></p>
+<section>
+<pre><code>import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.InetSocketAddress;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+
+public class HttpServerEx implements HttpHandler {
+  public static void main(String[] args) throws IOException {
+    HttpServer server = HttpServer.create(new InetSocketAddress(80), 10);
+    server.createContext("/", new HttpServerEx());
+    server.start();
+    System.out.println("Server started\nPress any key to stop...");
+    System.in.read();
+    server.stop(0);
+    System.out.println("Server stoped");
+  }
+  public void handle(HttpExchange exc) throws IOException {
+    exc.sendResponseHeaders(200, 0);
+    PrintWriter out = new PrintWriter(exc.getResponseBody());
+    out.println( "Hello moto!" );
+    out.close();
+    exc.close();
+  }
+}</code></pre>
+</section>
+</article>
+
+<article class="smaller">
+<h3>Http client / Java</h3>
+
+<p>Apache HttpClient (<a href="http://hc.apache.org/httpcomponents-client-ga/index.html">http://hc.apache.org/httpcomponents-client-ga/index.html</a>)<br/><a href="http://hc.apache.org/httpcomponents-client-ga/quickstart.html">Quick Start</a></p>
+<pre>HttpClient client = new DefaultHttpClient();
+HttpGet request = new HttpGet("http://www.vogella.com");
+HttpResponse response = client.execute(request);
+
+// Get the response
+BufferedReader rd = new BufferedReader
+  (new InputStreamReader(response.getEntity().getContent()));
+    
+String line = "";
+while ((line = rd.readLine()) != null) {
+  System.out.println(line);
+} 
+</pre>
+<div class="source">Source: <a href="http://www.vogella.com/articles/ApacheHttpClient/article.html">Apache HttpClient - Tutorial</a></div>
+</article>
+
+<article class="smaller">
+<p><a href="http://json.org/">http://json.org/</a> / <a href="http://ru.wikipedia.org/wiki/JSON">wikipedia:JSON</a> / <a href="http://yandex.ru/yandsearch?text=json">yandex:JSON</a></p>
+<section><pre><code>{"person": {
+  "id": "75685",
+  "fio": "Илья Тетерин",
+  "контакты": {
+      "twitter": "ya_pulser",
+      "url": "http://fluffypulser.ru",
+      "email": "ya.pulser@gmail.com"
+    } } }</code></pre></section>
+<span class="smaller">
+<ul>
+<li>Коллекция пар ключ/значение. В разных языках, эта концепция реализована как объект, запись, структура, словарь, хэш, именованный список или ассоциативный массив.</li>
+<li>Упорядоченный список значений. В большинстве языков это реализовано как массив, вектор, список или последовательность.</li>
+</ul>
+</span>
+<p>Есть еще YAML [YAML Ain’t Markup Language] (<a href="http://www.yaml.org/spec/1.2/spec.html">specs</a>). Описание на <a href="http://ru.wikipedia.org/wiki/YAML">wiki: YAML</a>.</p>
+<pre>receipt:     Oz-Ware Purchase Invoice
+date:        2007-08-06
+customer:
+    given:   Dorothy
+    family:  Gale</pre>
+</article>
+
+<article class="smaller">
+<h3>Идеальная домашка</h3>
+<p>a) отдельный архив исходников</p>
+<p>b) отдельный архив собранных .jar с .sh для запуска и раскладкой по каталогам (shard01/master, shard01/slave etc.)</p>
+<p>c) подробное описание раскладки по процессам/портам + инструкция по запуску (что в каком порядке поднимать)</p>
+<p>d) в архив из п.б) включен тестовый набор данных, заливаемых через
+<pre>cat data.txt | command-line-client.sh</pre>
+<p>e) клиент (Firefox http://localhost:8003/? :)), дабы подсоединиться к конкретной node и посмотреть, какие в ней данные</p>
+</article>
+
+<article class="smaller">
+<h3>Как тестировать?</h3>
+<p>Поднимаем:<br/>
+- router<br/>
+- shard 01 (master + slave)<br/>
+- shard 02 (master + slave)</p>
+<p>Заливаем данные (три записи).</p>
+<p>Проверяем, куда данные попали (shard / master / slave).</p>
+<p>Отрываем master - смотрим, что данные можно прочитать, но нельзя записать через клиент</p>
+<p>Возвращаем мастера, обновляем данные - смотрим что все ок через клиента</p>
+<p>Отрываем целиком shard - и проверяем, что данные из клиента и не прочитать и не записать</p>
+</article>
+
+<article class="smaller">
+<h3>Конфиг?</h3>
+<p>Пример на json</p>
+<pre>cat /tmp/dbroot/config.json
+{ 
+  "router" : { "addr":"localhost:8200" },
+  "shard01": { 
+    "master" : {"addr":"localhost:8201", "path":"/tmp/dbroot/master01.data"},
+    "slave"  : {"addr":"localhost:8202", "path":"/tmp/dbroot/slave01.data"}
+  },
+  "shard02": { 
+    "master" : {"addr":"localhost:8301", "path":"/tmp/dbroot/master02.data"},
+    "slave"  : {"addr":"localhost:8302", "path":"/tmp/dbroot/slave02.data"}
+  }
+}
+</pre>
+<p>Но можно на xml, на txt, yaml, .sh етс</p>
+<p>... на json конфигах живет, например, Transmission (torrent клиент)</p>
+</article>
+
+<article>
+<p>Мало данных?</p>
+<p><a href="http://www.datawrangling.com/some-datasets-available-on-the-web">Some Datasets Available on the Web</a> - 398 больших наборов данных</p>
+<p>Что-нить другое?</p>
+<p><a href="http://www.quora.com/Data/Where-can-I-get-large-datasets-open-to-the-public">Quora: Where can I get large datasets open to the public?</a></p>
+</article>
+
+<article class="smaller"> 
+<h3>Итого:</h3>
+<p>Структура ноды key-value хранилища</p>
+<p>Полезность простой key-value базы</p>
+<p>Масштабирование (sharding) key-value базы</p>
+<p>Memcached</p>
+<p>Consistent Hashing</p>
+<p>Надежность - master/slave replication</p>
+<p>"Кусочки" технологий для следующего шага</p>
+<p/>
+<p/>
+
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse.2012/index.html">http://fluffypulser.ru/static/dbcourse.2012/index.html</a></li>
+        </ul>
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

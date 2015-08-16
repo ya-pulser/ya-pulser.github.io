@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+
+    <title>Базы данных - телефонная книга</title>
+
+    <meta name="description" content="Лекции по базам данных. Бумажная телефонная книга. Организация информации в ней, хранение информации, операции над данными, CRUD, поиск, алгоритмы, скорость работы."/>
+    <meta name="keywords" content="course,lecture,database,db,crud,storage,хранение,алгоритм,принцип,скорость,база"/>
+    <meta name="author" content="Ilya Teterin"/>
+    <meta name="revised" content="Ilya Teterin, 09/01/2012" />
+
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+    
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2012-09-10
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+<h3>Лектор</h3>
+<p>Илья Тетерин / ya.pulser@gmail.com / <a href="https://twitter.com/ya_pulser">@ya_pulser</a></p>
+<ul>
+<li>Базы данных с 92-го года (Oracle / MSSQL / DBase)</li>
+<li>Java с 2000-го, немного знаю другие языки</li>
+<li>Яндекс СПб с 2007-го</li>
+<li>приложил руку к проектам:<br/><a href="http://market.yandex.ru/" title="Маркет">Маркет</a> / <a href="http://books.yandex.ru/" title="Книги">Книги</a> / <a href="http://auto.yandex.ru/" title="Авто">Авто</a> / 
+  <a href="http://maps.yandex.ru/?where" title="Адреса">Адреса</a> ...</li>
+</ul>
+</article>
+
+<article class="smaller">
+<q>A database is an organized collection of data, today typically in digital form.</q>
+<div class='author'>Wikipedia.org</div>
+<div class="source">Source: <a href="http://en.wikipedia.org/wiki/Database">Wikipedia / Database</a></div>
+</article>
+
+<article>
+<h3>Цель курса</h3>
+<br/>
+<div>
+<p>Принципы построения систем хранения данных</p>
+<p>Распространенные проблемы и варианты их решения</p>
+<p>Навыки оценки готовых реализаций и работы с ними</p>
+</div>
+</article>
+
+<article>
+<h3>Расписание</h3>
+<ul>
+<li>12 занятий</li>
+<li>занятия в физ-мат лицее 239 по понедельникам</li>
+<li>с 18:30 до 20:00 лекция, потом до 21.00 ответы на вопросы</li>
+</ul>
+<h3>Формат</h3>
+<p>Лекция - рассказ, слайды, <em><strong>ссылки</strong></em> для самостоятельной работы.</p>
+<p>Домашнее задание - практическое примение знаний, код ревью от лектора.</p>
+</article>
+
+<article>
+<h3>Зачет</h3>
+<ul>
+<li>основа зачета - написанная вами работающая база данных + текстовое описание что и почему в ней сделано</li>
+<li>язык реализации - понятный лектору: Java/Scala/Python/Ruby </li>
+<li>курсовик можно писать в одиночестве, лучше группой до 3-х человек включительно</li>
+</ul>
+</article>
+
+<article>
+<h3>Требования к выпускникам</h3>
+<p>Умение делать практические выводы из наборов слов и понятий, связанных с базами данных.</p>
+<p>Понимание, что принципы, лежащие в основе базы данных, важнее деталей конкретной реализации.</p>
+<p>Синтаксис гуглится в документации мгновенно, понимание приходит с опытом в ходе долгих раздумий.</p>
+</article>
+
+<article>
+<h3>База данных</h3>
+<p>В этом курсе "База данных" это организованная коллекция информации, потенциально необходимой в дальнейшем.</p>
+<p>... плюс алгоритмы и программы, для работы с этой коллекцией.</p>
+</article>
+
+<article>
+<h1>Базы вокруг нас</h1>
+<p>Рассмотрим несколько примеров баз данных вокруг нас</p>
+</article>
+
+<article>
+<h3>Сотовый телефон</h3>
+<ul>
+<li>список контактов в адресной книге</li>
+<li>список совершенных звонков</li>
+<li>список полученных и отправленных смс</li>
+<li>список установленных программ</li>
+<li>список сохраненных фоток</li>
+</ul>
+
+<h3>Браузер:</h3>
+<ul>
+<li>список закладок</li>
+<li>история посещенных страниц</li>
+<li>набор cookies, установленных разными сайтами</li>
+<li>кэш посещенных ранее страниц</li>
+</ul>
+</article>
+
+<article>
+<div>
+<h3>Обычная книга</h3>
+<ul>
+<li>список глав и абзацев</li>
+<li>оглавление книги как способ быстрого поиска / toc</li>
+<li>index (список слов в конце книги со ссылкой на страницу)</li>
+</ul>
+</div>
+</article>
+
+<article>
+<h3>Обобщение</h3>
+<p>Любой случай, когда при описании упоминается "список чего либо".</p>
+<p>Из чего следует, что даже "список покупок" - тоже база данных.</p>
+<br/>
+<h3>Список покупок:</h3>
+<ul>
+<li>перечисление имен товаров в произвольном порядке</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Чуть более сложно</h3>
+<dl>
+<dt>Файловая система вашего компьютера </dt>
+<dd>большая БД с очень большой функциональностью (журналируемые, распределенные)</dd>
+<dt>кэш (набор файлов) внутри IntelliJ IDEA</dt>
+<dd>из которого на лету подсказываются имена классов и методов</dd>
+<dt>Google Maps</dt>
+<dd>распределенная база данных содержащая не только текст, но и гео-точки и многомерные объекты</dd>
+<dt>Компьютерная игра</dt>
+<dd>описание уровней, AI скрипты, изображения</dd>
+<dd>(...красиво хранились данные в Doom [<a href="http://doomwiki.org/wiki/WAD">WAD файлы</a>]...)</dd>
+</dl>
+</article>
+
+<article>
+<h3>Бумажная телефонная книга</h3>
+<p>У каждого человека есть бумажная записная книжка...</p>
+<p>(хм ... либо такая есть у его мамы или бабушки)</p>
+<p>Она лежит где-то дома, извлекается на свет, когда надо позвонить дяде в Воронеж или найти телефон сантехника.</p>
+<p><em>Это организованная коллекция информации, которая нужна, но не прямо сейчас, а потенциально, в будущем.</em></p>
+<p><strong>Это есть база данных...</strong></p>
+<p>Разберем внимательно как она устроена и какие алгоритмы используются в ней.</p>
+</article>
+
+<article>
+<h3>Обычная записная книжка ... Мэрилин Монро</h3>
+<p><img class='centered' style='height: 500px' src='files/address_book_of_monroe.png'></p>
+<div class="source">Marilyn Monroe's address book with Frank Sinatra's name by Mario Tama / Getty Images</div>
+</article>
+
+<article>
+<h3>Имплементация телефонной книги</h3>
+<ul>
+<li>носителем информации является бумага</li>
+<li>информация вносится ручкой</li>
+<li>удалить информацию невозможно - можно только зачеркнуть</li>
+<li>на одной странице книги может быть от 0 до N записей</li>
+<li>каждая страница книги имеет свою букву (или пару букв)</li>
+<li>для букв Й и Ы и ряда других страницы нет (А почему?)</li>
+</ul>
+</article>
+
+<article>
+<h3>"Запись" в телефонной книге</h3>
+<br/>
+<ul>
+<li>имя человека</li>
+<li>номер телефона (с префиксом города или без)</li>
+</ul>
+<p><em>может содержать</em></p>
+<ul>
+<li>время работы (когда звонить)</li>
+<li>дату рождения (поздравить)</li>
+<li>номер автомобиля</li>
+<li>... да что угодно ... имени ее добермана, например</li>
+</ul>
+<br/>
+<p>состав информации определяется хозяином книги</p>
+</article>
+
+<article>
+<h3>Алгоритм: Добавление записи</h3>
+<h4>нам надо записать телефон тренера по самбо</h4>
+<ul>
+<li>находим нашу записную книжку</li>
+<li>находим страницу на букву С (самбо)</li>
+<li>ищем свободное место</li>
+<li>делаем запись</li>
+<li>закрываем книгу</li>
+<li>бросаем где лежала</li>
+</ul>
+</article>
+
+<article>
+<h3>Алгоритм: Поиск</h3>
+<h4>подтекает кран, нужен телефон сантехника</h4>
+<ul>
+<li>находим нашу записную книжку</li>
+<li>открываем страницу на букву С (сантехник)</li>
+<li>начиная сверху, по одной, просматриваем записи, пока не найдем нужную</li>
+<li>переносим во временное место (набираем в телефон или записываем на бумажку или на руку)</li>
+<li>закрываем книгу</li>
+<li>бросаем где лежала</li>
+<li>идем звонить с временной копией информации</li>
+</ul>
+</article>
+
+<article>
+<h3>Алгоритм: Обновление</h3>
+<h4>у дяди Коли сменился адрес</h4>
+
+<ul>
+<li>находим нашу записную книжку</li>
+<li>открываем страницу на букву К (Коля)</li>
+<li>ищем запись "дядя Коля"</li>
+<li>зачеркиваем запись</li>
+<li>ищем свободное место</li>
+<li>делаем запись</li>
+<li>закрываем книгу</li>
+<li>бросаем где лежала</li>
+</ul></li>
+</article>
+
+<article>
+<h3>Алгоритм: Удаление</h3>
+<h4>знать не знаю и не хочу больше знать завуча из школы</h4>
+
+<ul>
+<li>находим нашу записную книжку</li>
+<li>открываем страницу на букву Ш (школа)</li>
+<li>ищем запись про завуча</li>
+<li>зачеркиваем (тщательно, два раза)</li>
+<li>закрываем книгу</li>
+<li>бросаем где лежала</li>
+</ul>
+</article>
+
+<article>
+<h3>Итого алгоритмы / операции:</h3>
+<div>
+<ul>
+<li><span class="red">добавить</span> запись в книгу </li>
+<li><span class="red">получить</span> запись из книги</li>
+<li><span class="red">обновить</span> информацию в книге</li>
+<li><span class="red">удалить</span> информацию из книги</li>
+</ul>
+<h3>C R U D</h3>
+<div>
+<ul>
+<li>create</li>
+<li>retrieve</li>
+<li>update</li>
+<li>delete</li>
+</ul>
+<div>
+</div>
+<a href="http://en.wikipedia.org/wiki/Create,_read,_update_and_delete">wikipedia:Create,_read,_update_and_delete</a><br/>
+Базовые операции с данными ...
+</div>
+</div>
+</article>
+
+<article>
+<h3>Общее в алгоритмах (всегда)</h3>
+<p>Всегда находим книгу, закрываем и бросаем книгу - <em>у нас всегда есть однообразные подготовительные и завершающие шаги работы с базой</em>.</p>
+<p>Почти всегда мы сразу позиционируемся на какую-то страницу - факты, содержащиеся в информации позволяют "оптимизировать" процесс поиска</p>
+<p>Всегда внутри алгоритма у нас есть действие, описывающееся глаголом "искать" - найти запись, найти свободное место.</p>
+</article>
+
+<article>
+<h3>Задача: позвонить всем одноклассникам</h3>
+<p>Нам ни чем не поможет разделение на страницы...</p>
+<p>Придется перебрать все страницы...</p>
+<p>... и все записи на всех страницах.</p>
+<br/>
+<p>Но шаги "найди базу, закрой базу" все равно будут с нами.</p>
+</article>
+
+<article>
+<h3>С точки зрения инженера</h3>
+<p>Информация:
+<ul>
+<li>поступает в произвольном порядке</li>
+<li>классифицируется по первый букве записи</li>
+<li>заносится на страницу своего класса</li>
+<li>классы доступны по первой букве фамилии</li>
+<li>внутри страницы данные записываются последовательно, в порядке поступления</li>
+</ul>
+</p>
+</article>
+
+<article>
+<h3>Чуть чуть ключевых понятий</h3>
+<ul>
+<li>кто такой инженер</li>
+<li>что такое o(n)</li>
+<li>что такое "компьютер - ну очень быстро ..."</li>
+</ul>
+</article>
+
+<article class="smaller">
+<p>An engineer is a professional, concerned with applying scientific knowledge, mathematics and ingenuity to develop solutions for technical, social and economic problems.</p>
+<p>Engineers design materials, structures and systems while considering the limitations imposed by practicality, safety and cost.</p>
+<p>The word engineer is derived from the Latin roots ingeniare ("to contrive, devise") and ingenium ("cleverness").</p>
+<p >Инженер (фр. ingénieur, от лат. ingenium — способность, изобретательность) ... </p>
+<p><img src="files/ingenium.png"/></p>
+<div class="source">Source:<a href="http://en.wikipedia.org/wiki/Engineer">http://en.wikipedia.org/wiki/Engineer</a></div>
+</article>
+
+<article>
+<h3>Ошибки инженеров</h3>
+<p><img src="files/shanghai_2.jpeg"/>&nbsp;<img style='width:450px' src='files/shanghai_building_flipover.png'></p>
+<div class="source">27 июня 2009-го года, Lotus Riverside, Шанхай</div>
+</article>
+
+<article>
+<h3>Что такое o(n)</h3>
+<p><a href="http://ru.wikipedia.org/wiki/%C2%ABO%C2%BB_%D0%B1%D0%BE%D0%BB%D1%8C%D1%88%D0%BE%D0%B5_%D0%B8_%C2%ABo%C2%BB_%D0%BC%D0%B0%D0%BB%D0%BE%D0%B5">wikipedia:«O» большое и «o» малое</a>
+<a href="http://en.wikipedia.org/wiki/Big_O_notation">wikipedia:Big_O_notation</a></p>
+<p>Пусть наш компьютер делает 1000 операций в секунду...</p>
+
+<table>
+<tr><th>O</th><th>1 тыс.</th><th>1 млн.</th></tr>
+<tr><td>o(n)</td><td>1 сек..</td><td>1000 сек. = 16 мин.</td></tr>
+<tr><td>o(ln(n))</td><td>0.006 сек</td><td>0.013 сек</td></tr>
+<tr><td>o(n^2)</td><td>16 мин.</td><td>31 год</td></tr>
+<tr><td>o(n ln(n))</td><td>7 сек.</td><td>3.8 часа</td></tr>
+<tr><td>o(k * n)</td><td>9 * 1</td><td>9 * 1 * 1000</td></tr>
+</table>
+</article>
+
+<article>
+<h3>Примеры o(n)</h3>
+<ul>
+<li>o(n) - последовательный перебор (full scan)</li>
+<li>o(n^2) - сравнение всех со всеми</li>
+<li>o(ln(n)) - бинарный поиск</li>
+<li>o(n ln (n)) - сортировка <a href="http://en.wikipedia.org/wiki/Quicksort">quick sort</a></li>
+<li>o(k * n) - <a href="http://en.wikipedia.org/wiki/Radix_sort">wikipedia: radix sort</a></li>
+</ul>
+</article>
+
+<article>
+<h3>Скорость поиска в телефонной книге структуре</h3>
+<ul>
+<li>ищем нужную страницу<br/>
+ - линия от А до Я с О(c * n=28)<br/>
+ - бинарный поиск в отсортированном A-Я O(ln(28))
+</li>
+<li>открываем (загружаем) нужную страницу с O(c * 1)</li>
+<li>линейно, начиная сверху, перебираем записи, пока не найдем нужную - O(c * n малое [~ N/28])</li>
+</ul>
+<br/>
+<h3>Если хранить без деления на страницы, т.е. простым списком</h3>
+<ul>
+<li>скорость поиска - O(N)</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Достоинства телефонной книги</h3>
+
+<p>Храним 100 номеров</p>
+
+<p>В простом списке - o(n) ~100/2 ~50 операций</p> 
+
+<p>В полностью отсортированным списке было бы О(ln(n)) ~6.6 операций</p>
+<br/>
+<p>А у нас получается для 100 элементов:<br/> ln(28) + 100/28/2 ~ 4.8 + 1.8 ~6.6</p>
+<p>Что на самом деле очень неплохо, так как список букв - пресортирован и не меняется, не требует пересортировки.</p>
+<br/>
+<p>За счет структуры (особенности имплементации базы данных) книжки 
+- сложность уменьшается в 15 раз, по сравнению с простой записью:</p>
+<p>O(100) vs O(ln(28)) + O(n/28)</p>
+</article>
+
+<article>
+<h3>Ограничения физического мира</h3>
+<ul>
+<li>скорость random memory access</li>
+<li>скорость sequencial memory access</li>
+<li>скорость random disk drive access</li>
+<li>скорость sequencial disk drive access</li>
+</ul>
+<h3>Вопрос:</h3>
+<ul>
+<li>Ищем 1000 записей - 100Мб последовательно или 1000 random access?</li>
+<li>Сеть - диск - память - ЦПУ кэш - где использовать random vs sequencial?</li>
+</ul>
+<p class="smaller">Блог Романа Елизарова: <a href="http://elizarov.livejournal.com/27425.html"/>Память: последовательный доступ vs случайный доступ. Как замерить?</a></p>
+</article>
+
+<article class="smaller">
+<h3>Latency Comparison Numbers</h3>
+<pre class="smaller">L1 cache reference                          0.5 ns
+Branch mispredict                             5 ns
+L2 cache reference                            7 ns             14x L1 cache
+Mutex lock/unlock                            25 ns
+
+Main memory reference                       100 ns            20x L2 / 200x L1 cache
+
+Compress 1K bytes with Zippy              3,000 ns
+
+Send 1K bytes over 1 Gbps network        10,000 ns   0.01 ms
+
+Read 4K randomly from SSD*              150,000 ns   0.15 ms
+
+Read 1 MB sequentially from memory      250,000 ns   0.25 ms
+
+Round trip within same datacenter       500,000 ns   0.5  ms
+
+Read 1 MB sequentially from SSD*      1,000,000 ns   1    ms  4X memory
+
+Disk seek                            10,000,000 ns  10    ms 20x datacenter roundtrip
+
+Read 1 MB sequentially from disk     20,000,000 ns  20    ms 80x memory, 20X SSD
+
+Send packet CA->Netherlands->CA     150,000,000 ns 150    ms
+</pre>
+<div class="source">source: Numbers everyone should know by Jeff Dean 
+(<a href="https://gist.github.com/2841832">version 1</a> / 
+<a href="https://gist.github.com/2843375">version 2</a>)
+</div>
+</article>    
+
+<article>
+<h3></h3>
+<p><img class='centered' src='files/latencies.png' style='width: 100%' ></p>
+<div class="source">source: Numbers everyone should know by Jeff Dean 
+(<a href="https://gist.github.com/2841832">version 1</a> / 
+<a href="https://gist.github.com/2843375">version 2</a>)
+</div>
+</article>
+
+<article class="smaller">
+<h3>Умножим на 1 миллиард</h3>
+<pre>### Minute:
+    L1 cache reference                  0.5 s       One heart beat (0.5 s)
+    Branch mispredict                   5 s         Yawn
+    L2 cache reference                  7 s         Long yawn
+    Mutex lock/unlock                   25 s        Making a coffee
+### Hour:
+    Main memory reference               100 s       Brushing your teeth
+    Compress 1K bytes with Zippy        50 min      A TV show (including ad breaks)
+### Day:
+    Send 2K bytes over 1 Gbps network   5.5 hr      From lunch to end of work day
+### Week
+    SSD random read                     1.7 days    A normal weekend
+    Read 1 MB sequentially from memory  2.9 days    A long weekend
+    Round trip within same datacenter   5.8 days    A medium vacation
+    Read 1 MB sequentially from SSD    11.6 days    Almost 2 weeks for a delivery
+### Year
+    Disk seek                           16.5 weeks  A semester in university
+    Read 1 MB sequentially from disk    7.8 months  Almost a new human being
+    The above 2 together                1 year
+### Decade
+    Send packet CA->Netherlands->CA     4.8 years   A bachelor's degree</pre>
+<div class="source">source: Numbers everyone should know by Jeff Dean 
+(<a href="https://gist.github.com/2843375">version 2</a>)
+</div>
+</article>
+
+<article>
+<h3>Почему имплементация книги такова</h3>
+
+<p>Ограничения физического мира накладывают ограничение на доступные решения.</p>
+
+<p>Полностью оптимальное решение сложно (посортируйте от руки на бумаге).</p>
+
+<ul>
+<li>бумага (носитель)</li>
+<li>скорость человека (вычислительная мощность)</li>
+</ul>
+</article>
+
+<article>
+<h3>Итого</h3>
+<p>Бумажная телефонная книга:</p>
+<ul>
+<li>хорошая (люди пользуются)</li>
+<li>эффективная (o(n) etc)</li>
+<li>понятная (и пользователю ... и инженеру)</li>
+<li>надежная (годами работают)</li>
+<li>проверенная временем (столетия, наверное)</li>
+</ul>
+<p><em>... настоящая база данных</em></p>
+</article>
+
+<article>
+<h3>Заметки для инженера</h3>
+
+<p>Простые структуры могут дать хороший результат.</p>
+<p>Быстрая имплементация может понятной.</p>
+<p>Сохраненные данные статичны и добавление новой информации экономно.</p>
+
+<br/>
+<p class="green">Я хочу, дабы вы смотрели на мир с инженерной стороны - почему и как совершаются процессы в привычных вещах.</p>
+
+</article>
+
+<article>
+<h3>Вопросы?</h3>
+<ul>
+<li>web: <a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+<li>twitter: <a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+<li>email: ya.pulser at gmail.com</li>
+<li>слайды: <a href="http://fluffypulser.ru/static/dbcourse/index.html">http://fluffypulser.ru/static/dbcourse.2012/index.html</a></li>
+</ul>
+</article>
+
+<article>
+<h3>Домашнее задание, часть #1</h3>
+<p>Своя база данных на Java (Ruby/Python/etc)</p>
+<ul>
+<li>телефонная книга - фио + телефон - на arrayList</li>
+<li><span class="red">CRUD</span> операции, в формате add (ivanov, Иванов, +7921AAABBCC) / get (ivanov)</li>
+<li>доступ к через какой-либо api ( console / http / socket - на выбор )</li>
+<li>возможность сохранить в файл, дабы можно было перезапустить сервер ( flush / commit / snapshot )</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Домашнее задание, часть #1</h3>
+<p>Скучно? ... тогда что-нить побольше ...</p>
+<p>IMDB dataset: <a href="http://www.imdb.com/interfaces">http://www.imdb.com/interfaces</a> - база данных фильмов, актеров етс.</p>
+<p><a href="ftp://ftp.funet.fi/pub/mirrors/ftp.imdb.com/pub/actors.list.gz">actors.list.gz</a> - 198Mb gz, 687Mb ungzip, 13М строк о 1.5М актеров</p>
+<p><a href="ftp://ftp.funet.fi/pub/mirrors/ftp.imdb.com/pub/actresses.list.gz">actresses.list.gz</a> - 109Mb gz, 400Mb ungzip, 7М строк о 0.8М актрис</p>
+<p><pre class="nocode">
+Clooney, George 'Ocean's Eleven': The Look of the Con (2002) (V)  [Himself]
+                'Solaris': Behind the Planet (2003) (V)  [Himself]
+                101 Biggest Celebrity Oops (2004) (TV)  (archive footage)  [Himself - #57 Batman & Robin]
+                101 Sexiest Celebrity Bodies (2005) (TV)  (archive footage)  [Himself - Place #80]
+                13th Annual Critics' Choice Awards (2008) (TV)  [Himself]
+                13th Annual Critics' Choice Awards Red Carpet Premiere (2008) (TV)  [Himself]
+ </pre></p>
+<p>Что-нить другое?</p>
+<p><a href="http://www.quora.com/Data/Where-can-I-get-large-datasets-open-to-the-public">Quora: Where can I get large datasets open to the public?</a></p>
+
+</article>
+
+
+<div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

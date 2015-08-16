@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть десятая
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2012-12-03
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+    <h1>GraphDB</h1>
+    <p>Граф</p>
+    <p>Хранение графов</p>
+    <p>Neo4j / Tinkerpop</p>
+</article>
+
+<article class="smaller ">
+<h3>Граф</h3>
+<p>Теория графов изобретена Леонардом Эйлером ... <br/>в ходе решения <a href="http://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%BE%D0%B1%D0%BB%D0%B5%D0%BC%D0%B0_%D1%81%D0%B5%D0%BC%D0%B8_%D0%BC%D0%BE%D1%81%D1%82%D0%BE%D0%B2_%D0%9A%D1%91%D0%BD%D0%B8%D0%B3%D1%81%D0%B1%D0%B5%D1%80%D0%B3%D0%B0">задачи о 7 мостах в Кёнигсберге</a>...<br/>и представлена в Петербуржской Академии 26 августа 1735-го года.</p>
+<div class="centered">
+  <img style="width:40%" src="files/gr_003.png"/>
+  <img style="width:50%" src="files/gr_002.png"/>
+  <img style="width:40%" src="files/gr_005.svg"/>
+  <img style="width:40%" src="files/gr_004.svg"/>
+</div>
+<div class="source"><a href="http://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%BE%D0%B1%D0%BB%D0%B5%D0%BC%D0%B0_%D1%81%D0%B5%D0%BC%D0%B8_%D0%BC%D0%BE%D1%81%D1%82%D0%BE%D0%B2_%D0%9A%D1%91%D0%BD%D0%B8%D0%B3%D1%81%D0%B1%D0%B5%D1%80%D0%B3%D0%B0">wikipedia</a></div>
+</div>
+</article>
+
+<article class="smaller">
+<h3>Типы графов</h3>
+<div><img class="centered" style="width:100%" src="files/Rodriguez_Figure2.jpg"/></div>
+<p>Множественный, нагруженный, с поименованными вершинами, с поименованными ребрами, атрибутированные вершины и ребра, направленный и ненаправленный, связанный, хипер-граф, дерево, циклический и ациклический, планарный etc ...</p>
+<div class="source"><a href="http://www.asist.org/Bulletin/Aug-10/AugSep10_Rodriguez_Neubauer.html"</a>Constructions from Dots and Lines</a> by Marko A. Rodriguez and Peter Neubauer</>
+</article>
+
+<article class="smaller">
+<h3>Граф дорог, нагруженный временем на отрезках</h3>
+<img class="centered" src="files/gr_006.png"/>
+<div class="source"><a href="http://company.yandex.ru/facts/researches/ya_auto_vs_transport_2011.xml">Yandex: Автомобиль или общественный транспорт? Москва, Осень 2011</a></div>
+</article>
+
+<article class="smaller">
+<h3>Граф дорог: путешествие</h3>
+<img style="width:100%" src="files/gr_michelin.png"/>
+<div class="source"><a href="http://www.viamichelin.com/">http://www.viamichelin.com</a></div>
+<p>Нагрузка - время в пути, стоимость проезда, расход бензина етс.</p>
+</article>
+
+<article class="smaller">
+<h3>Социальная сеть aka stay in touch ...</h3>
+<p>Facebook, Twitter, LinkedIn, ВКонтакте, Одноклассники етс етс ...</p>
+<p>Социальный граф:
+<br/>ноды - люди (компании),
+<br/>ребра - "дружу", "служу", "работаю", "смотрю", "читаю" ...</p>
+<p>Алгоритмы - рекомендации:
+<br/> * А не хочешь ли дружить с Петей, ибо с ним дружит твой друг Вася ...
+<br/><span class="green">направлено на рост сети и уточнение характеристик ноды</span>
+<br/> * Люди твоего семейного положения, возраста и достатка ... любят смотреть рекламу о машинах ...
+<br/><span class="green">точная реклама дороже стоит</span>
+</p>
+<p><a href="http://ru.wikipedia.org/wiki/%D0%A2%D0%B5%D0%BE%D1%80%D0%B8%D1%8F_%D1%88%D0%B5%D1%81%D1%82%D0%B8_%D1%80%D1%83%D0%BA%D0%BE%D0%BF%D0%BE%D0%B6%D0%B0%D1%82%D0%B8%D0%B9">Теория шести рукопожатий</a></p>
+<p>Twitter: 3.43 / Facebook: 4.74 (source:<a href="http://en.wikipedia.org/wiki/Six_degrees_of_separation">Six degrees of separation</a>)</p>
+
+</article>
+
+<article class="smaller">
+<h3>Компьютерная сеть aka The Net ...</h3>
+<p>Интернет сам по себе - компьютеры, свитчи, таблицы маршрутизации, пользователи ... сайти и линки сайтов </p>
+<p>Ноды - компьютеры и раутеры, ребра - сетевые связи между ними.</p>
+<p>Алгоритм <a href="http://ru.wikipedia.org/wiki/PageRank">PageRank</a> и <a href="http://ru.wikipedia.org/wiki/%D0%98%D0%BD%D0%B4%D0%B5%D0%BA%D1%81_%D1%86%D0%B8%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_%D0%B2%D0%B5%D0%B1-%D1%81%D0%B0%D0%B9%D1%82%D0%BE%D0%B2">индекс цитирования сайтов</a></p>
+<p>Новые термины: <a href="http://en.wikipedia.org/wiki/Internet_of_Things">Internet of Things</a> / <a href="http://en.wikipedia.org/wiki/Web_of_Things">Web of Things</a></p>
+<p>Интересная презентация: <a href="http://qconlondon.com/dl/qcon-london-2011/slides/protected/EmilEifrem_and_RickBullotta_UsingAGraphDatabaseToPowerTheWebOfThings.pdf">Using A Graph Database To Power  The “Web of Things”</a> by Rick Bullotta and Emil Eifrem</p>
+<p/>
+<div><img style="height:45%" src="files/gr_010.png"/><img style="height:40%" src="files/gr_011.jpg"/></div>
+<div class="source"><a href="http://relaxonecorner.com/index.php/2009/03/14/it-network-wiring-nightmare/">IT network wiring nightmare</a></div>
+</article>
+
+<article class="smaller">
+<h3>Трансформации типов графов</h3>
+<img class="centered" style="width:100%" src="files/Rodriguez_Figure3.jpg"/>
+<div class="source"><a href="http://www.asist.org/Bulletin/Aug-10/AugSep10_Rodriguez_Neubauer.html">Constructions from Dots and Lines</a> by Marko A. Rodriguez and Peter Neubauer</div>
+</article>
+
+<article class="smaller">
+<h3>Хранение графов: в реляционной базе</h4>
+<img class="centered" style="width:100%" src="files/gr_db_01.png"/>
+<div class="source"><a href="http://www.slideshare.net/slidarko/graph-windycitydb2010">The Graph Traversal Programming Pattern</a> by Marko A. Rodriguez</div>
+</article>
+
+<article class="smaller">
+<h3>Хранение графов: в JSON / документной базе</h4>
+<img class="centered" style="width:100%" src="files/gr_db_02.png"/>
+<div class="source"><a href="http://www.slideshare.net/slidarko/graph-windycitydb2010">The Graph Traversal Programming Pattern</a> by Marko A. Rodriguez</div>
+</article>
+
+<article class="smaller">
+<h3>Хранение графов: в xml</h4>
+<img class="centered" style="width:100%" src="files/gr_db_03.png"/>
+<div class="source"><a href="http://www.slideshare.net/slidarko/graph-windycitydb2010">The Graph Traversal Programming Pattern</a> by Marko A. Rodriguez</div>
+</article>
+
+<article class="smaller">
+<h3>GraphDB: определение</h3>
+<p>Если графы можно хранить в любой базе, зачем термин graph db?</p>
+<p>"Официального" определения не существует.</p>
+<p><a href="https://twitter.com/#!/twarko">@twarko</a> определяет это как: Граф база - это любое хранилище, реализующее "смежность" без использования индексов (index-free adjacency).</p>
+<ul>
+<li>Каждый элемент (ребро, вершина) напрямую знает о связанных элементах</li>
+<li>Не требуется o(ln(n)) поиск по индексу</li>
+<li>Если граф связан - это атомарная структура данных</li>
+</ul>
+<p>Граф ДБ - можно рассматривать как распределенный индекс, когда в каждом элементе живет свой, маленький, кусочек индекса.</p>
+<p>Граф ДБ - это о "локальных" вычислениях. Т.е. когда результат определяется "окрестностями" точки. "Глобальное вычисление" - плохо, нужно будет ходить по всем-всем точкам.</p>
+<div class="source"><a href="http://www.slideshare.net/slidarko/graph-windycitydb2010">The Graph Traversal Programming Pattern</a> by Marko A. Rodriguez</div>
+</article>
+
+<article class="smaller">
+<h3>Neo4j: NOSQL for the Enterprise</h3>
+<p><a href="http://neo4j.org/">http://neo4j.org/</a> / wikipedia:<a href="http://en.wikipedia.org/wiki/Neo4j">Neo4j</a> </p>
+<p>Neo4j is a high-performance, NOSQL graph database with all the features of a mature and robust database.</p>
+<p>"embedded, disk-based, fully transactional Java persistence engine that stores data structured in graphs rather than in tables"</p>
+<p><span class="green">“For anything with multiple relationships, multiple connections, Neo4j absolutely ROCKS!”</span> Werner Vogels, CTO of Amazon</p>
+<p/>
+<p><a href="http://neotechnology.com/">http://neotechnology.com</a> / Menlo Park, CA 94025 / 19 Malmo, Sweden</p>
+<p>Несколько раз получали венчурный капитал, сейчас 25 человек в 5 странах етс ...</p>
+<p>Люди:</p>
+<p>Emil Eifrém, CEO <a href="https://twitter.com/#!/emileifrem">@emileifrem</a> </p>
+<p>Peter Neubauer, VP Product Management <a href="https://twitter.com/#!/peterneubauer">@peterneubauer</a> </p>
+<p>Marko A. Rodriguez, Advisor <a href="http://markorodriguez.com/">http://markorodriguez.com</a> / <a href="https://twitter.com/#!/twarko">@twarko</a> </p>
+</article>
+
+<article>
+<h3>install neo4j ( Mac OS X )</h3>
+<p><a href="http://neo4j.org/forums/#nabble-td3295750">http://neo4j.org/forums/#nabble-td3295750</a></p>
+<pre>brew update 
+brew install neo4j 
+neo4j start</pre>
+<pre>pulser-osx:tmp pulser$ neo4j start
+Starting Neo4j Server...WARNING: not changing user
+ process [8330]... waiting for server to be ready.... OK.
+pulser-osx:tmp pulser$ open http://localhost:7474/
+
+==&gt;          \,,,/
+==&gt;          (o o)
+==&gt; -----oOOo-(_)-oOOo-----
+==&gt; 
+==&gt; Available variables:
+==&gt;   g = neo4jgraph[EmbeddedGraphDatabase 
+  [/usr/local/Cellar/neo4j/community-1.5/libexec/data/graph.db]]
+==&gt;   out   = java.io.PrintStream@121f34d0
+</pre>
+</article>
+
+<article class="smaller">
+<h3>Tinkerpop / http://tinkerpop.com</h3>
+<p>Open source software products in the graph space.</p>
+<div><img src="files/gr_tinkerpop.png"/></div>
+<!-- <p><a href="https://github.com/tinkerpop/repositories">https://github.com/tinkerpop/repositories</a></p> -->
+<p>Blueprints: набор API ( a-la JDBC но для Graph DB :) ) - реализации </p>
+<p>Gremlin: язык обхода графов, работает со всеми базами у которых есть blueprints обертка</p>
+<p>Rexter: превращаем BluePrints базу в REST server (http://localhost:8182/graphs/tinkergraph/vertices/1)</p>
+<p>Pipes: библиотека для конструирования процессов обработки</p>
+<p>Furnace: библиотека алгоритмов над графами</p>
+<p>Frames: java object - graph bridge (ORM для графов)</p>
+</article>
+
+<article class="smaller">
+<pre>gremlin&gt; t = new TinkerGraph('/tmp/tinker');
+==&gt; tinkergraph[vertices:0 edges:0 directory:/tmp/tinker]
+gremlin&gt; t.addVertex(0)
+==&gt; v[0]
+gremlin&gt; t.v(0).setProperty("name","mongo")
+==&gt; 
+gremlin&gt; t.v(0).setProperty("age", 5 ) 
+==&gt; 
+gremlin&gt; t.v(0).map
+==&gt; name=mongo
+==&gt; age=5
+gremlin&gt; t.addVertex(1)
+==&gt; v[1]
+gremlin&gt; t.v(1).setProperty("name", "pulser" )
+==&gt; 
+gremlin&gt; t.addEdge(0, t.v(1), t.v(0), "uses")
+==&gt; e[0][1-uses-&gt;0]
+gremlin&gt; t.v(1).out
+==&gt; v[0]
+gremlin&gt; t.v(1).in
+gremlin&gt; t.v(1).outE
+==&gt; e[0][1-uses-&gt;0]
+</pre>
+</article>
+
+<article class="smaller">
+<img class="centered" src="files/gr_gremlin_001.jpg"/>
+<pre>gremlin&gt; t = TinkerGraphFactory.createTinkerGraph()
+==&gt; tinkergraph[vertices:6 edges:6]</pre>
+<div class="source"><a href="https://github.com/tinkerpop/gremlin/wiki/Defining-a-Property-Graph">Gremlin: Defining a Property Graph</a></div>
+</article>
+
+<article class="smaller">
+<pre>gremlin&gt; t.V.name
+==&gt; lop
+==&gt; vadas
+==&gt; marko ...
+gremlin&gt; t.E
+==&gt; e[10][4-created-&gt;5]
+==&gt; e[7][1-knows-&gt;2]
+==&gt; e[9][1-created-&gt;3] ...
+gremlin&gt; v = t.v(1)
+==&gt; v[1]
+gremlin&gt; v.out
+==&gt; v[2]
+==&gt; v[3]
+==&gt; v[4]
+gremlin&gt; v.outE
+==&gt; e[7][1-knows-&gt;2]
+==&gt; e[9][1-created-&gt;3]
+==&gt; e[8][1-knows-&gt;4]
+gremlin&gt; v.out.name
+==&gt; vadas
+==&gt; lop
+==&gt; josh
+gremlin&gt; v.out('knows').name
+==&gt; vadas
+==&gt; josh
+gremlin&gt; v.out('knows').filter{it.age &gt; 30}.out('created').name
+==&gt; ripple
+==&gt; lop </pre>
+</article>
+
+<article class="smaller">
+<h3>Хочу данных!</h3>
+<p>thru http://markorodriguez.com </p>
+<p><a href="http://www.grouplens.org/node/73">MovieLens Data Sets</a> Aug 2011</p>
+<ul>
+<li>MovieLens 100k - Consists of 100,000 ratings from 1000 users on 1700 movies.</li>
+<li>MovieLens 1M - Consists of 1 million ratings from 6000 users on 4000 movies.</li>
+<li>MovieLens 10M - Consists of 10 million ratings and 100,000 tag applications applied to 10,000 movies by 72,000 users.</li>
+</ul>
+<p><a href="http://www.grouplens.org/node/462">HetRec 2011 Data Sets</a> May 2011</p>
+<ul>
+<li>Delicious bookmark data (105,000 bookmarks from 1867 users)</li>
+<li>Last.fm music artist data (92,800 artist listening records from 1892
+users)</li>
+<li>MovieLens rating data with IMDb and Rotten Tomatoes links (86,000 ratings from 2113 users)</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h4>MovieLens</h4>
+<pre>==&gt; movies.dat &lt;==
+MovieID::Title::Genres
+1::Toy Story (1995)::Animation|Children's|Comedy
+2::Jumanji (1995)::Adventure|Children's|Fantasy
+
+==&gt; ratings.dat &lt;==
+UserID::MovieID::Rating::Timestamp
+1::1193::5::978300760
+1::661::3::978302109
+
+==&gt; users.dat &lt;==
+UserID::Gender::Age::Occupation::Zip-code
+1::F::1::10::48067
+2::M::56::16::70072
+
+wc -l *.dat
+    3883 movies.dat
+ 1000209 ratings.dat
+    6040 users.dat
+ 1010132 total</pre>
+<p>Разделитель ::</p>
+</article>
+
+<article class="smaller">
+<pre class="nocode"><b>imdb данные - hetrec2011-movielens-2k.zip</b>
+pulser$ wc -l *.dat
+  231743 movie_actors.dat
+   10198 movie_countries.dat
+   10156 movie_directors.dat
+   20810 movie_genres.dat
+   49168 movie_locations.dat
+   51796 movie_tags.dat
+   10198 movies.dat
+   13223 tags.dat
+  855599 user_ratedmovies-timestamps.dat
+  855599 user_ratedmovies.dat
+   47958 user_taggedmovies-timestamps.dat
+   47958 user_taggedmovies.dat
+ 2204406 total
+<hr/>
+head -n 5 movies.dat | awk 'BEGIN{FS="[\t]"} {print $1,$2,$3;}'
+id title imdbID
+1 Toy story 0114709
+2 Jumanji 0113497
+3 Grumpy Old Men 0107050
+<hr/>
+head -n 5 movie_actors.dat 
+movieID actorID actorName   ranking
+1   annie_potts Annie Potts 10
+1   bill_farmer Bill Farmer 20
+1   don_rickles Don Rickles 3
+</article>
+
+<article class="smaller">
+<p><b>Загрузим актеров в neo4j и посмотрим что получится...</b></p>
+<p>Создаем новую базу neo4j</p>
+<p>Парсим входные файлы</p>
+<p>"Гуляем" по данным</p>
+
+<p>Надо еще подготовить уникальный список актеров:</p>
+<pre class="nocode">iconv -f ISO-8859-1 -t utf8 movie_actors.dat 
+    | awk ' BEGIN{FS="[\t]";OFS="\t"} { print $2,$3; }' 
+    | sort 
+    | uniq &gt; mine_actors.dat
+
+head mine_actors.dat 
+1000057-don_adams   Don Adams
+10000635-joel_michaely  Joel Michaely
+10000643-john_hensley   John Hensley
+</pre>
+<p>NB: neo4j не дает назначить id вершинам, так что нужен "маппинг" из id файлов в ноды...</p>
+</article>
+
+<article class="smaller">
+<pre class="nocode">
+создаем проект в IDEA
+прописываем библиотеки из 
+   /usr/local/Cellar/neo4j/community-1.8-unix/libexec/lib/
+
+geronimo-jta_1.1_spec-1.1.1.jar
+lucene-core-3.5.0.jar
+neo4j-cypher-1.8.jar
+neo4j-graph-algo-1.8.jar
+neo4j-graph-matching-1.8.jar
+neo4j-jmx-1.8.jar
+neo4j-kernel-1.8.jar
+neo4j-lucene-index-1.8.jar
+neo4j-shell-1.8.jar
+neo4j-udc-1.8.jar
+org.apache.servicemix.bundles.jline-0.9.94_1.jar
+scala-library-2.9.1-1.jar
+server-api-1.8.jar
+</pre>
+</article>
+
+<article class="smaller">
+<pre class="nocode">public class Loader3 extends TestCase {
+    public static final Pattern TAB_SPLITTER = Pattern.compile("\t");
+    public static final String PATH = "/Users/pulser/mine/neo/";
+    EmbeddedGraphDatabase graphDb = null;
+    Transaction transaction = null;
+
+    public void setUp() throws Exception {
+        super.setUp();
+        if (graphDb == null) {
+            graphDb = new EmbeddedGraphDatabase("/Users/pulser/neo4j/imdb/graph.db");
+            transaction = graphDb.beginTx();
+        } }
+
+    protected void tearDown() throws Exception {
+        transaction.success();
+        transaction.finish();
+        graphDb.shutdown();
+        super.tearDown(); }
+
+    private &lt;K&gt; List&lt;K&gt; loadFile(final String name, final Fu&lt;String[], K&gt; reader) throws IOException {
+        final List&lt;K&gt; out = Cf.newList();
+        final BufferedReader in = new BufferedReader(new FileReader(PATH + name));
+        String line = in.readLine(); // skip first line
+        while ((line = in.readLine()) != null) {
+            out.add(reader.apply(TAB_SPLITTER.split(line)));
+        }
+        return out; }
+</pre>
+<div class="source"><a href="files/Loader3.java">Source: Loader3.java</a></div>
+</article>
+
+<article class="smaller">
+<pre class="nocode">
+static class MovieActor {
+    public final String movieID;
+    public final String actorID;
+    public final String actorName;
+    public final int ranking;
+    MovieActor(final String[] items) {
+        this.movieID = items[0];
+        this.actorID = items[1];
+        this.actorName = items[2];
+        this.ranking = items[3] != null ? Integer.valueOf(items[3]) : -1; 
+    }   
+    public static Fu&lt;String[], MovieActor&gt; getReader() {
+        return new Fu&lt;String[], MovieActor&gt;() {
+            public MovieActor apply(final String[] arg) {
+                return new MovieActor(arg);
+            }   
+        };  
+    } } 
+
+static class Movie { ... } 
+
+public void testLoadActors2012() throws Exception {
+    System.out.println("out = " + 
+       loadFile("mine_movie_actor.dat", MovieActor.getReader()).size());
+
+    System.out.println("out = " + 
+       loadFile("mine_movies.dat", Movie.getReader()).size()); }
+</pre>
+</article>
+
+<article class="smaller">
+<pre class="nocode">public void testLoadMoviesToNeo() throws Exception {
+
+log.info("Clear old data ... ");
+for (final Node node : graphDb.getAllNodes()) {
+    for (final Relationship item : node.getRelationships()) {
+        item.delete();
+    }
+    node.delete();
+}
+
+log.info("Load movies ...");
+final List&lt;Movie&gt; movies = loadFile("mine_movies.dat", Movie.getReader());
+final Map&lt;String, Integer&gt; uniqMovie = new HashMap&lt;String, Integer&gt;();
+for (final Movie movie : movies) {
+    final String key = movie.title + "#" + movie.year;
+    if (uniqMovie.containsKey(key)) {
+        continue;
+    }
+    uniqMovie.put(key, movie.id);
+}
+
+final Map&lt;Integer, Integer&gt; movieIdToUniqMovieId = new HashMap&lt;Integer, Integer&gt;();
+for (final Movie movie : movies) {
+    final String key = movie.title + "#" + movie.year;
+    final Integer uniq = uniqMovie.get(key);
+    movieIdToUniqMovieId.put(movie.id, uniq);
+}
+</pre></article>
+
+<article class="smaller">
+<pre class="nocode">
+final Map&lt;Integer, Node&gt; movieToNodeMapping = new HashMap&lt;Integer, Node&gt;();
+log.info("Create nodes for movies ...");
+for (final Movie movie : movies) {
+    if (movie.id != movieIdToUniqMovieId.get(movie.id))
+        continue;
+
+    final Node v = graphDb.createNode();
+    v.setProperty("type", "movie");
+    v.setProperty("title", movie.title);
+    v.setProperty("src-id", movie.id);
+    v.setProperty("imdbId", movie.imdbId);
+    v.setProperty("year", movie.year);
+    movieToNodeMapping.put(movie.id, v); }
+
+log.info("Load actors ...");
+final List&lt;MovieActor&gt; actors = loadFile("mine_movie_actor.dat", MovieActor.getReader());
+final Map&lt;String, String&gt; uniqActors = new HashMap&lt;String, String&gt;();
+for (final MovieActor actor : actors)
+    uniqActors.put(actor.actorID, actor.actorName);
+
+log.info("Create nodes for actors ...");
+final Map&lt;String, Node&gt; actorMapping = new HashMap&lt;String, Node&gt;();
+for (final Map.Entry&lt;String, String&gt; actor : uniqActors.entrySet()) {
+    final Node node = graphDb.createNode();
+    node.setProperty("type", "actor");
+    node.setProperty("name", actor.getValue());
+    node.setProperty("actor-id", actor.getKey());
+
+    actorMapping.put(actor.getKey(), node); }
+</pre></article>
+
+<article class="smaller">
+<pre class="nocode">
+
+log.info("Create relations ...");
+final Set&lt;String&gt; alreadyRegistered = new HashSet&lt;String&gt;();
+for (final MovieActor actor : actors) {
+
+    final Integer mid = Integer.valueOf(actor.movieID);
+    final Integer uniqMovieId = movieIdToUniqMovieId.get(mid);
+    final String ukey = actor.actorID + "#" + uniqMovieId;
+    if (alreadyRegistered.contains(ukey)) {
+        continue;
+    }
+
+    final Node nodeMovie = movieToNodeMapping.get(uniqMovieId);
+    final Node nodeActor = actorMapping.get(actor.actorID);
+
+    if (nodeMovie == null || nodeActor == null) {
+        System.out.println("actor = " + actor);
+        throw new IllegalStateException();
+    }
+
+    final Relationship edge = nodeMovie.createRelationshipTo(nodeActor, RelTypes.act);
+    edge.setProperty("rank", actor.ranking);
+
+    alreadyRegistered.add(ukey);
+
+}
+
+log.info("Done.");
+
+}
+</pre>
+</article>
+
+<article class="smaller">
+<p>Мы, при помощи теста, построили новую graph.db с данными о фильмах.</p>
+<p>Остановим сервер neo4j stop</p>
+<p>Подсунем новую базу серверу ...</p>
+<p class="green">Я не нашел, как ему из коммандной строки подсунуть "другую" базу ...</p>
+<p>Запустим сервер и пойдем в браузер ...</p>
+<pre class="nocode">pulser$ cd /Users/pulser/neo4j/imdb
+pulser$ neo4j stop
+pulser$ cp -r graph.db /usr/local/Cellar/neo4j/community-1.8-unix/libexec/data/
+pulser$ neoj4 start
+...
+Go to <a href="http://localhost:7474/webadmin/">http://localhost:7474/webadmin/</a>
+...
+</pre>
+
+</article>
+
+<article class="smaller">
+<p>Откроем Console и там Gremlin ...</p>
+<pre class="nocode">
+gremlin&gt; c = g.v(164077)
+==&gt; v[164077]
+gremlin&gt; c.name
+==&gt; George Clooney
+
+gremlin&gt; c.in.out.filter({it.name == 'Brad Pitt'}).unique()
+==&gt; v[139564]
+
+gremlin&gt; c.in.out.filter({it.name == 'Brad Pitt'}).back(2).title
+==&gt; Ocean's Twelve
+==&gt; Ocean's Thirteen
+==&gt; Burn After Reading
+==&gt; Ocean's Eleven
+</pre>
+</article>
+
+<article class="smaller">
+<p>Откроем Data Browser...</p>
+<p>Сделаем запрос на Cypher ...</p>
+<pre class="nocode">
+START a = node(*)
+where a.type = 'actor' and ( a.name = 'George Clooney' or a.name = 'Brad Pitt' )
+RETURN a        // and return it.
+
+// Hit CTRL+ENTER to execute
+</pre>
+</article>
+
+<article class="smaller">
+<p>А потом посмотрим немножко на это в графическом виде ...</p>
+<p><img src="files/graph_movie_sample.png" style="width:100%"/></p>
+</article>
+
+<article class="smaller">
+<p>Открытый теоретический вопрос
+<br/> - как партиционировать графы
+<br/> - как раскладывать их по нодам.</p>
+<p>Ответ лежит где-то в районе "minimum cut" (<a href="http://en.wikipedia.org/wiki/Cut_(graph_theory)">wiki:Cut (graph_theory)</a>)</p>
+<p>... но разрез можно посчитать для статичного графа, а что делать с динамичным?</p>
+<p>Ответ от neo4j - вы удивитесь, сколько нод и ребер можно "спрятать" внутри одной машины ...</p>
+<hr/>
+<h3>Неохваченно в лекциях - Pregel by Google</h3>
+<p><a href="http://kowshik.github.com/JPregel/pregel_paper.pdf">pdf</a> - 2010 год, map-reduce подобные вычисления на графах.</p>
+<p>На каждой ноде выполняется один и тот же код.</p>
+<p>Вход - это сообщения от всех нод к этой ноде с предыдущего шага.</p>
+<p>Выход - набор сообщений для нод на следующем шаге.</p>
+<p>На каждом шаге нода может сказать "ready", т.е. "хватит считать"</p>
+<p>Расчет закончен, когда все ноды закончили расчет.</P>
+</article>
+
+<article class="smaller">
+<h3>Литература</h3>
+<p><a href="https://github.com/tinkerpop">https://github.com/tinkerpop</a> - документация по Tinkerpop продуктам</p>
+<p><a href="http://neo4j.org/learn/">http://neo4j.org/learn/</a> - документация и туториалы по Neo4j</p>
+<p><a href="http://markorodriguez.com/writings/">Writings</a> и <a href="http://markorodriguez.com/lectures/">Lectures</a> by Marko Rodriguez</p>
+<p>Интернет университет: <a href="http://www.intuit.ru/department/algorithms/ingrth/">Введение в теорию графов</a></p>
+<p>Твиттер по hash-tag <a href="https://twitter.com/#!/search/%23neo4j">#neo4j</a></p>
+<p>InfoQ.com по <a href="http://www.infoq.com/search.action?queryString=neo4j&searchOrder=date&search=neo4j">neo4j</a></p>
+<p>DZone <a href="http://dzone.com/mz/nosql">NoSQL</a> microzone</p>
+</article>
+
+
+<article class="smaller">
+    <h3>Итого</h3>
+<p>Теория графов вышла из "математическая" абстракция в нашу жизнь.</p>
+<p>Вычисления в графах ориентированы на "локальность".</p>
+<p>Специальный базы созданы и доступны для работы с графами.</p>
+<p>В свободном доступе есть массивы данных для игры с алгоритмами.</p>
+<p>Создать программу для работы с Neo4j можно за несколько часов.</p>
+<hr/>
+
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse.2012/index.html">http://fluffypulser.ru/static/dbcourse.2012/index.html</a></li>
+        </ul>
+      </article>
+
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

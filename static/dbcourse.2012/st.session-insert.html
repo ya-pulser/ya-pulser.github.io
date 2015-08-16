@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Storage Log</title>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    <script type="text/javascript">
+
+        // previous lections
+        window.sessionStorage.setItem("sess.1", "33");
+        window.sessionStorage.setItem("sess.2", "34");
+        window.sessionStorage.setItem("sess.3", "27");
+        window.sessionStorage.setItem("sess.4", "24");
+        window.sessionStorage.setItem("sess.5", "25");
+
+        newLine = function() {
+            var k = document.getElementById("key").value;
+            var v = document.getElementById("val").value;
+            window.sessionStorage.setItem(k, v);
+        }
+
+        removeLine = function() {
+            var k = document.getElementById("key").value;
+            window.sessionStorage.removeItem(k);
+        }
+
+    </script>
+
+</head>
+
+<body>
+<header>
+    <h3>Пример SessionStorage</h3>
+</header>
+<pre>
+<script>
+    var t = window.sessionStorage;
+    for (var i = 0; i < t.length; i++) {
+        document.write('' + t.key(i) + ' : ' + t.getItem(t.key(i)) + '\n');
+    }
+</script>
+</pre>
+<div>key: <input type="text" name="key" id="key"/></div>
+<div>val: <input type="text" name="val" id="val"/></div>
+<div><input type="button" value="new" onclick="newLine()"/></div>
+<div><input type="button" value="remove" onclick="removeLine()"/></div>
+<div><a href="st.session-insert.html">refresh</a></div>
+</body>
+
+</html>

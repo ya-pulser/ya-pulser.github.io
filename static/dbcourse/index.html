@@ -1,0 +1,141 @@
+<!DOCTYPE HTML>
+<html lang="ru">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="description" content="Курс лекций: введение в базы данных - от массива до NoSQL." />
+<meta name="keywords" content="DB,lecture,course,NoSQL,database,bigtable,mongodb,neo4j,java,CAP,лекция,базы данных,введение" />
+<meta name="author" content="Ilya Teterin" />
+<meta name="revised" content="Ilya Teterin, 02/04/2012" />
+
+<title>Базы данных: лекции для Computer Science Center, сентябрь - декабрь 2011</title>
+
+    <link rel="stylesheet" href="../css/bootstrap.css"/>
+    <script src="../js/bootstrap.js"></script>
+
+</head>
+<body>
+
+<div class="container">
+    <div class="row show-grid">
+        <div class="span8">
+
+
+<h2>Курс лекций по базам данных</h2>
+<h4><a rel="author" href="http://fluffypulser.ru/static/about.html">Илья Тетерин</a>
+    <a rel="author" href="https://profiles.google.com/">
+        <img src="http://ssl.gstatic.com/images/icons/gplus-16.png" width="16" height="16">
+    </a>
+для <a href="http://compscicenter.ru/">Computer Science Center</a></h4>
+<h4>14.09.2011 - 07.12.2011</h4>
+<h4>направление Software Engineering</h4>
+
+<div><g:plusone size="small" annotation="inline"></g:plusone><script type="text/javascript">
+  (function() {
+    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+    po.src = 'https://apis.google.com/js/plusone.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+  })();
+</script></div>
+
+<article>
+<h3>Слайды лекций</h3>
+<ul>
+<li><a href="db.course.01.html">01: телефонная книга</a></li>
+<li><a href="db.course.02.html">02: партиции и репликация</a></li>
+<li><a href="db.course.03.html">03: ACID / CAP / BASE</a></li>
+<li><a href="db.course.04.html">04: get by ID</a></li>
+<li><a href="db.course.05.html">05: get N rows / explain plan</a></li>
+<li><a href="db.course.06.html">06: фотохостинг / бинарные данные</a></li>
+<li><a href="db.course.07.html">07: спец. база: поиск</a></li>
+<li><a href="db.course.08.html">08: bigtable / hbase</a></li>
+<li><a href="db.course.09.html">09: mapreduce</a></li>
+<li><a href="db.course.10.html">10: html5: webstorage</a></li>
+<li><a href="db.course.11.html">11: graph / graphdb / neo4j</a></li>
+<li><a href="db.course.12.html">12: итоги: от массива через NoSQL ...</a></li>
+</ul>
+</article>
+
+<article>
+<h3>Видео запись лекций</h3>
+<a href="http://www.lektorium.tv/course/?id=22828">Базы данных</a> на <a href="http://http://www.lektorium.tv/">Lektorium.TV</a>.
+</article>
+
+<article>
+<h3>Домашние задания</h3>
+
+<p>Требования: 
+<ul>
+<li>первая и пятая части - обязательно</li>
+<li>одна (или несколько) на выбор: вторая, третья или четвертая части</li>
+<li>язык реализации - Java или Python или другой скриптовой, кроссплатформенный (понятный лектору)</li>
+</ul>
+</p>
+
+
+<h4>Первая часть</h4>
+<ul>
+<li>телефонная книга - фио + телефон - на arrayList</li>
+<li>CRUD операции</li>
+<li>доступ к через какой-либо api ( console / http / socket - на выбор )</li>
+<li>возможность сохранить в файл, дабы можно было перезапустить сервер ( flush / commit / snapshot )</li>
+</ul>
+
+<h4>Вторая часть</h4>
+<ul>
+<li>подключить механизм партиционирования - шардирования</li>
+<li>журнал операций - для восстановления, если не сделали flush перед выключением</li>
+<li>master - slave репликация ( через сделанный ранее api - передаем журнал на slave и применяем его там )</li>
+</ul>
+
+<h4>Третья часть</h4>
+<ul>
+<li>несколько коллекций в базе</li>
+<li>составной ключ ( имя коллекции + id в пределах коллекции )</li>
+<li>CRUD операции с поддержкой нескольких коллекций ( например get student:7 ) </li>
+<li>операции создания и удаления коллекций</li>
+</ul>
+
+<h4>Четвертая часть</h4>
+<ul>
+<li>распределенная база данных из К нод</li>
+<li>каждая запись в кластере на N нодах, где N &lt; K (строго меньше)</li>
+<li>сохранение делается на W нод</li>
+<li>при чтении - читаем с R нод из N</li>
+<li>настраиваемые параметры N, R, W</li>
+<li>выключаем M нод из K (M &lt; N) и демонстрируем что данные живы / доступны по ключу</li>
+</ul>
+
+<h4>Пятая часть (пояснительная записка)</h4>
+<ul>
+<li>Техническое описание системы:
+<ul>
+<li>как собрать систему</li>
+<li>как запустить (на кластере)</li>
+<li>как использовать - список команд и примеры</li>
+<li>известные ограничения системы (по памяти, выживаемость етс)</li>
+</ul>
+</li>
+<li>Предложение по использованию системы: (реальное или выдуманное)
+<ul>
+<li>какие проблемы может решить</li>
+<li>как может их решить</li>
+<li>какие ожидаемые результаты</li>
+</ul>
+</li>
+<li>Объем записки:<ul>
+<li>Минимальный - 1 лист А4 шрифтом 10 pt</li>
+<li>Максимальный - 5 листов А4 шрифтом 12 pt</li>
+</ul></li>
+</ul>
+
+</article>
+
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+    
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть четвертая
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2011-10-12
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article class="smaller">
+<h3>Новости мира баз данных</h3>
+<ul>
+<li><strong>Redis и числа Фибоначчи</strong> - <a href="https://github.com/antirez/redis/issues/116">issue #116</a><br/>
+<p class="smaller">The calculation of the Fibonacci value for a number is a serious issue.<br/>
+I request as a feature the command FIB.<br/>
+Use of the command: redis-cli &gt; FIB 10<br/>
+55</p></li>
+<li><strong>Oracle and NoSQL</strong><br/>
+May 2011 - <a href="http://bit.ly/mQmugL">Debunking the NoSQL hype</a><br/>
+<span>хорошая, подробная бумага почему NoSQL плохо - рекомендую</span><br/>
+2 Oct 2011 - <a href="http://bit.ly/mXysGN">Focus On Oracle NoSQL Database</a><br/>
+<span>конференция в Сан-Франциско - презентация новой базы</span><br/>
+Oct 2011 - <a href="http://www.oracle.com/technetwork/database/nosqldb/overview/index.html">Oracle NoSQL Database</a><br/>
+<span>на сайте появились страницы, но<br/>
+"The Oracle NoSQL Database documentation link <span class="green">is coming soon</span>."</span>
+<br/>
+- Key-value pair data structure, keys are composed of Major &amp; Minor keys<br/>
+- Easy-to-use Java API with simple Put, Delete and Get operations<br/>
+- Automatic, hash-function based data partitioning and distribution<br/>
+- ACID transactions, configurable globally and per operation 
+</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Oct 10, 2011 - Сбой в работе mail.ru</h3>
+<p><a href="http://www.itar-tass.com/c9/243774.html">ИТАР ТАСС: В работе российского почтового интернет-сервиса "Мейл.ру" произошел сбой</a></p>
+<p>МОСКВА, 10 октября. /ИТАР-ТАСС/. Пользователи крупнейшего российского почтового сервиса "Мейл.ру" ... испытывают трудности с доступом к своим почтовым ящикам. 
+При попытке проверить почту или открыть письмо на экране появляются сообщения то об ошибке сервера, то о перегрузке базы данных.</p>
+<p>Проблемы с доступом к почтовому сервису начались примерно в полдень, при этом остальные сервисы портала "Мейл.ру" работают нормально.</p>
+<p><a href="http://roem.ru/2011/10/10/addednews37052/">roem.ru</a> 11.10.2011: В результате внедрения новой более оптимальной системы хранения данных произошел программно-аппаратный сбой. Наши специалисты устранили проблему в течении 2-х часов. Сбой состоял в недоступности почты для примерно 8-10% пользователей. Никаких потерь или утечей данных не было.</p>
+<p><a href="http://ru.wikipedia.org/wiki/Mail.Ru#.D0.A1.D1.82.D0.B0.D1.82.D0.B8.D1.81.D1.82.D0.B8.D0.BA.D0.B0">wikipedia:mail.ru</a> ... почта (22,7 млн человек ежемесячно) ...</p>
+<p>pulser: 22.7м в месяц ... 756k в день ... 30 000 человек в час ... 10% - это 3 000 человек в течение часа</p>
+<p>это не много, не мало - это проблемы availability в кластере ... но они заметны на уровне ИТАР-ТАСС ...</p>
+</article>
+
+<article>
+<h3>SQL vs NoSQL</h3>
+<h4>Relational Database Management System + SQL</h4>
+<p> Oracle /  MySQL / PostgreSQL / HSQLDB </p>
+<h4>NoSQL (Not Only SQL) - <a href="http://nosql-database.org/">nosql-database.org</a></h4>
+<p>Key Value - Memcached, Redis</p>
+<p>Document Store - MongoDB, CouchDB</p>
+<p>Graph DB - Neo4j, HyperGraphDB, FlockDB</p>
+<p> ... etc ... </p>
+<p><a href="http://en.wikipedia.org/wiki/NoSQL">wikipedia:NoSQL</a> ( <a href="http://ru.wikipedia.org/wiki/NoSQL">рус</a> )</p>
+
+</article>
+
+<article>
+<h3>Flashback:</h3>
+<ul>
+<li>бумажная телефонная книга, как база данных</li>
+<li>CRUD операции</li>
+<li>UI к нашей базе (console / http / socket)</li>
+<li>partition/sharding / master-slave replication</li>
+<li>key-value store / document oriented db</li>
+<li>транзакции / journal операций</li>
+<li>ACID / CAP / BASE</li>
+</ul>
+</article>
+
+<article>
+<h1>Почему долго работает мой запрос?</h1>
+<p>На примере: дайте седьмую запись</p>
+<p>Мы точно знаем что мы хотим получить и хотим получить одну единственную запись.</p>
+</article>
+
+<article>
+<h3>Запрос</h3>
+<ul>
+<li>"наша база":<br/><pre>http://host:port/select?id=7</pre></li>
+<li>memcached / redis: <br/><pre>get 7\r\n</pre></li>
+<li>SQL:<br/><pre>select * from users where id = 7</pre></li>
+</ul>
+</article>
+
+<article>
+<h3>SQL Select:</h3>
+<pre><code>-- ключевое слово - команда
+select 
+-- какие поля ( * )
+  fio, phone 
+-- ключевое слово - разделитель
+from 
+-- имя коллекции
+  phones 
+-- ключевое слово - ограничения
+where 
+-- ограничения через AND / OR 
+  id = 7</code></pre>
+</article>
+
+<article>
+<h3>Сценарий исполнения запроса</h3>
+<ul>
+<li>клиент формирует запрос</li>
+<li>соединяемся с базой</li>
+<li>передаем запрос</li>
+<li>сервер парсит запрос</li>
+<li>находит коллекцию</li>
+<li>получает данные</li>
+<li>преобразует в формат для ответа</li>
+<li>отправляет по сети</li>
+<li>на клиенте восстанавливаем данные</li>
+<li>закрываем соединение</li>
+</ul>
+</article>
+
+<article>
+<h3>формирует запрос</h3>
+<ul>
+<!-- <li>Нужно знать API / синтакс команд</li> -->
+<li>собрать строчку руками (Query by Language)
+<pre>String sql = "select * from persons where id = " + id</pre></li>
+<li>query by example (Query by Example)
+<pre>Person p = new Person(); // всё остальное null
+p.setLastName("Smith");
+ObjectCollection oc = QueryExecutor.execute(p);</pre>
+</li>
+<li>построители запросов (Query by API)
+<pre>Query q = new Query();
+q.From("PERSON").Where(new EqCriteria("PERSON.LAST_NAME", "Smith"));
+ObjectCollection oc = QueryExecutor.execute(q);</pre></li>
+<li>ORM (object - relation mapping)</li>
+</ul>
+</article>
+
+<article>
+<h3>соединяется с базой</h3>
+<pre>
+Class.forName("com.mysql.jdbc.Driver");
+String myDatabaseURL = "jdbc:mysql://mydomain.com/database?user=" 
+    + myUsername + "&amp;password=" + myPassword;
+java.sql.Connection con = DriverManager.getConnection(myDatabaseURL);</pre>
+<ul>
+<li>а какой shard? ( f(x)-&gt;shard )</li>
+<li>dns запрос / cache / timeout</li>
+<li>открыть socket</li>
+<li>подготовить буфера</li>
+</ul>
+</article>
+
+<article>
+<h3>передаем запрос</h3>
+<ul>
+<li>простая форма - строка</li>
+<li>QBE/QBA - обойти объекты,<br/> построить структуру запроса</li>
+<li>сериализация (структура - поток байт)</li>
+<li>на сервере - (поток байт - структура)</li>
+<li>блок памяти для запроса на сервере</li>
+</ul>
+</article>
+
+<article>
+<h3>сервер парсит запрос</h3>
+<ul>
+<li>а какая команда будет?</li>
+<li>валидность пришедших данных</li>
+<li>к какой коллекции обращение</li>
+<li>с какими параметрами</li>
+<!-- <li>precompile regexp</li> -->
+<!-- <li>кеширование</li> -->
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Пример кода</h3>
+<pre>public interface Command {
+  void process(Processor p, String cmd) throws IOException;
+  boolean isApplicable(String cmd); }
+
+public abstract class AbstractDump implements Command {
+  public boolean isApplicable(String cmd) {
+    return "/dump".equals(cmd) || "Dump".equals(cmd); }}
+
+public class MasterDump extends AbstractDump {
+  public void process(Processor p, String cmd) throws IOException {
+    boolean result = PhoneBook.getPhoneBook().dump();
+    p.writeResponse(result ? "OK" : "ERROR"); }}
+
+COMMANDS = new ArrayList<MasterCommand>();
+COMMANDS.add(new MasterCommit());
+COMMANDS.add(new MasterDump());
+
+for (MasterCommand cmd : COMMANDS) {
+  if (cmd.isApplicable(string)) {
+    cmd.process(this, string);
+    break; }} 
+</pre>
+<div class="source">by Ксения Мамич</div>
+</article>
+
+<article>
+<img class='centered' style='height: 500px' src="files/db-commands.png"/>
+<div class="source">Generated in IntelliJ IDEA by yFiles</div>
+</article>
+
+<article>
+<h3>находит хранилище / коллекцию</h3>
+<ul>
+<li>внутренний словарь данных</li>
+<li>коллекция существует?</li>
+<li>где находится коллекция?</li>
+</ul>
+</article>
+
+<article>
+<h3>получает данные из коллекции</h3>
+<ul>
+<li>формат коллекции (память/файл)?</li>
+<li>открыть файл (какой, где, filehandle etc)</li>
+<li>найти запись:<br/>
+random access - а как узнать позицию?<br/>
+scan - а как фильтровать? только в десериализованом</li>
+<li>позиционирование / фрагментация файла</li>
+<li>транзакция - undo logs - фрагментация</li>
+<li>cache - в базе, в OS</li>
+<li>зачитать данные в буфер</li>
+<li>преобразовать буфер в memory structure</li>
+</ul>
+</article>
+
+<article>
+<h3>преобразует в данные для ответа</h3>
+<ul>
+<li>формат в коллекции ( * - все поля как есть )</li>
+<li>формат в запросе ( f1, f2 - спрячь лишнее при начитке)</li>
+<li>десериализация</li>
+<li>фильтрация</li>
+</ul>
+</article>
+
+<article>
+<h3>отправляет по сети</h3>
+<ul>
+<li>сериализация</li>
+<li>буфер на стороне сервера</li>
+<li>особождение ресурсов на сервере</li>
+</ul>
+</article>
+
+<article>
+<h3>восстановление на клиенте</h3>
+<ul>
+<li>буфер для сериализованных данных</li>
+<li>десериализация (строка - структура)</li>
+<li>by hand
+<pre>Person p = new Person();
+p.setName(request.getParameter("name"))
+p.setPhone(request.getParameter("phone"));</pre></li>
+<li>ORM (подробнее - не сегодня)</li>
+</ul>
+</article>
+
+<article>
+<h3>закрытие соединения</h3>
+<ul>
+<li>finally - вернуть в пул</li>
+<li>таймауты</li>
+</ul>
+</article>
+
+<article>
+<h1>Оптимизации</h1>
+<p>Что можно сделать, дабы было быстрее</p>
+</article>
+
+<article>
+<h3>Клиент и соединения</h3>
+<p></p>
+<ul>
+<li>connection pool (<a href="http://commons.apache.org/dbcp/">Apache DBCP</a>)</li>
+<li>"горячий" connection</li>
+</ul>
+<ul>
+<li>пул соединений</li>
+<li>prepared statement</li>
+<li>batch операции</li>
+<li>кеширование ключ -&gt; shard</li>
+<li><a href="http://en.wikipedia.org/wiki/Bloom_filter">wikipedia: Bloom фильтр</a>(<a href="http://ru.wikipedia.org/wiki/%D0%A4%D0%B8%D0%BB%D1%8C%D1%82%D1%80_%D0%91%D0%BB%D1%83%D0%BC%D0%B0">по русски</a>)</li>
+</ul>
+<p>
+<a href="http://spyced.blogspot.com/2009/01/all-you-ever-wanted-to-know-about.html">All you ever wanted to know about writing bloom filters</a><br/>
+<a href="http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html">Bloom Filters - the math</a><br/>
+m - колво битов, k - колво hash функций, n - колво ключей ... интересно при k > 2 и m/n > 10 ... </p>
+</article>
+
+<article>
+<h3>Сервер и соединения</h3>
+<ul>
+<li>кеширование распаршенных запросов</li>
+<li>prepared statement + cache
+<pre>PreparedStatement ps = connection.prepareStatement(
+  "select * from person where id = ?");
+ps.setLong(1,7L);
+final ResultSet rs = ps.executeQuery();</pre></li>
+<li>"горячие" инстансы</li>
+<li>формат сериализации - binary, закрытый</li>
+</ul>
+</article>
+
+<article>
+<h3>Словарь базы</h3>
+<ul>
+<li>кеширование</li>
+<li>изменения в словаре и транзакции</li>
+</ul>
+</article>
+
+<article>
+<h3>Получение данных</h3>
+<ul>
+<li>file cache для файлов с данными</li>
+<li>количество свободной памяти vs file cache</li>
+<li>memory mapped files / file page miss</li>
+<li>упакованные данные / gzip / io speed vs cpu speed</li>
+<li>распаковка с произвольного места / !gzip / lzo / bzip2</li>
+<li>сортированный data file / binary search</li>
+</ul>
+</article>
+
+<article>
+<h3>Получение данных - индексы</h3>
+<ul>
+<li>индекс - <u>дополнительная</u> структура для быстрого позиционирования</li>
+<li>индексы vs словарь vs парсер</li>
+<li>селективность (cardinality) + статистика</li>
+<li>индекс и позиционирование в data file</li>
+<li>два раза ищем (сначала в индексе, потом в файле)</li>
+<li>... а не всегда (если данных в индексе достаточно для ответа)</li>
+</ul>
+</article>
+
+<article>
+<h3>Преобразование формата data file - response</h3>
+<ul>
+<li>Отказ от фильтрации - меньше нагрузка на CPU</li>
+<li>Отдавать как есть - копия данных</li>
+<li>key-value vs document vs table row</li>
+<li>формат vs объем данных</li>
+</ul>
+</article>
+
+<article>
+<h3>Форматы сериализации</h3>
+<ul>
+<li>XML - парсеры, валидация, читаем, достаточно одного файла</li>
+<li><a href="http://json.org/">json</a> - xml + компактнее и напрямую можно использовать в браузере</li>
+<li><a href="http://code.google.com/apis/protocolbuffers/">Protocol Buffers</a> - Google, жесткий, рекомпиляция</li>
+<li><a href="http://thrift.apache.org/">Thrift</a> - Facebook - жесткий, рекомпиляция</li>
+<li><a href="http://bsonspec.org/">bson</a> - MongoDB, компактный, нечитаем</li>
+<li>... etc ...</li>
+</ul>
+<p><a href="https://github.com/eishay/jvm-serializers/wiki">JVM-serializers - бенчмарки</a></p>
+<p><a href="http://www.predic8.com/protobuf-etch-thrift-comparison.htm">Protocol Buffers, Etch, Hadoop and Thrift Comparison</a></p>
+</article>
+
+<article class="smaller">
+<h3>Protocol buffers</h3>
+<p><a href="http://code.google.com/apis/protocolbuffers/docs/overview.html">http://code.google.com/apis/protocolbuffers/docs/overview.html</a></p>
+<p>Why not just use XML?</p>
+<p>Protocol buffers:
+<ul>
+<li>are simpler</li>
+<li>are 3 to 10 times smaller</li>
+<li>are 20 to 100 times faster</li>
+<li>are less ambiguous</li>
+<li>generate data access classes that are easier to use programmatically</li>
+</ul></p>
+</article>
+
+
+<!--
+<article>
+<h3>вернем несколько рядов</h3>
+<p>несколько походов по сети</p>
+<p>set fetch size</p>
+<p>объем памяти под fetch buffer</p>
+</article>
+
+<article>
+<h3>Индексы</h3>
+<ul>
+<li></li>
+</ul>
+</article>
+
+<article>
+<h3>Order by</h3>
+<ul>
+<li></li>
+</ul>
+</article>
+-->
+
+      <article>
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse/index.html">http://fluffypulser.ru/static/dbcourse/index.html</a></li>
+        </ul>
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

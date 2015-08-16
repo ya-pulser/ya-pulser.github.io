@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+    
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть третья
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2011-09-28
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+<h3>Flashback:</h3>
+<ul>
+<li>бумажная телефонная книга, как база данных</li>
+<li>CRUD операции</li>
+<li>хранение данных в памяти</li>
+<li>UI к нашей базе (console / http / <span class="green">socket</span>)</li>
+<li>partition/sharding</li>
+<li>journal операций</li>
+<li>master-slave replication</li>
+<li>key-value store</li>
+<li>document oriented db</li>
+</ul>
+</article>
+
+<article>
+<h3>Изменяемое состояние</h3>
+<ul>
+<li>фазированные (каталог раз в год)</li>
+<li>on-fly изменения (надо прямо сейчас - биржа)</li>
+<li>промежуточные варианты</li>
+</ul>
+<p class="green">nb: read-only данные - легко масштабируются под нагрузку</p>
+</article>
+
+<article>
+<h3>Транзакция в реальной жизни</h3>
+<ul>
+<li>в идеале - мгновенный переход из состояния "до" в состояние "после"</li>
+<li>фокус с переодеванием человека на модном шоу</li>
+<li>никто не должен видеть процесс перехода<br/>(как произошло)</li>
+<li>state machine - машина состояний</li>
+<li>связанные аккаунты - с одного списали, на другой занесли<br/><span class="green">несколько действий за один заход</span></li>
+<li>а как же наши журналы, индексы, счетчики етс?</li>
+</ul>
+</article>
+
+<article>
+<h3>транзакция сложнее</h3>
+<ul>
+<li>математика: y = f(x) - мгновенно</li>
+<li>атомарность == неделимое</li>
+<li>компьютер</li>
+<li>атомарность i++</li>
+<li>нет зрителей - нет проблем, synchronize</li>
+<li>закрытый мир + stop the world</li>
+</ul>
+</article>
+
+<article>
+<h3>ACID / АСИД</h3>
+<ul>
+<li>Atomicity<br/>Атомарность</li>
+<li>Consistency<br/>Согласованность / Корректность</li>
+<li>Isolation<br/>Изолированность / Невидимость</li>
+<li>Durability<br/>Долговечность / Устойчивость</li>
+</ul>
+<p class="green">acid (eng) - кислятина <br/>&copy; <a href="http://lingvo.yandex.ru/acid/">http://lingvo.yandex.ru/acid/</a></p>
+</article>
+
+<article>
+<h3>Атомарность</h3>
+<ul>
+<li>либо случилось, либо нет</li>
+<li>rollback</li>
+<li>undo-log</li>
+</ul>
+</article>
+
+<article>
+<h3>Согласованность</h3>
+<ul>
+<li>внутренне ( индексы, формат етс )</li>
+<li>внешне</li>
+<li>а как описать внешние ограничения на стороне базы?</li>
+<li>вычислительные ресурсы</li>
+<li>связи внутри и вовне</li>
+</ul>
+</article>
+
+<article>
+<h3>Изолированность</h3>
+<ul>
+<li>свой маленький мир</li>
+<li>я вижу свои изменения</li>
+<li>я не вижу изменений соседа</li>
+<li>начало времен</li>
+<li>иллюзия последовательности событий</li>
+<li>... уровни изоляции (подводная лодка)</li>
+</ul>
+</article>
+
+<article>
+<h3>Isolation levels / уровни изоляции</h3>
+<ul>
+<li>1. Serializable<br/>иллюзия последовательности</li>
+<li>2. Repeatable reads / phantom reads <br/>набор рядов меняется</li>
+<li>3. Read committed / non-repeatable read <br/>значение меняется</li>
+<li>4. Read uncommitted / dirty reads <br/>они откатились, а мы увидели</li>
+<li>SCN / system change number / "время" базы</li>
+</ul>
+</article>
+
+<article>
+<h3>Долговечность / Устойчивость</h3>
+<ul>
+<li>я сказал "ок, значит ок"</li>
+<li>сначала в журнал, только потом ok</li>
+<li>свет выключили</li>
+<li>винт обсыпался</li>
+<li>в огне не горит, в воде не тонет</li>
+<li>журнал регистрации операций с недвижимостью - с печатью, пронумерованные, прошитые</li>
+</ul>
+<!-- <p class="green">(дурако)устойчивость</p> -->
+</article>
+
+<article>
+<h3>Достижимость ACID в кластере</h3>
+<ul>
+<li>атомарность</li>
+<li>согласованность</li>
+<li>изолированность</li>
+<li>устойчивость</li>
+<li>nb: многоядерный компьютер - тоже страдает от этих проблем</li>
+</ul>
+</article>
+
+<article>
+
+<h3>CAP теорема</h3>
+<p><a href="http://www.julianbrowne.com/article/viewer/brewers-cap-theorem">Brewer's CAP Theorem</a><br/>by Julian Browne</p>
+<p><a href="http://www.allthingsdistributed.com/2008/12/eventually_consistent.html">Eventually Consistent - Revisited</a><br/>
+<a href="http://www.infoq.com/presentations/availability-consistency">Talk: Availability &amp; Consistency</a><br/>
+by Werner Vogels, CTO Amazon</p>
+
+</article>
+
+<article>
+<h3>CAP</h3>
+<ul>
+<li>Consistency<br/>все показания сходятся</li>
+<li>Availability<br/>всегда отвечает</li>
+<li>Partition (tolerance)<br/>один за всех</li>
+</ul>
+</article>
+
+<article>
+<h3>картинка - треугольник C-A-P</h3>
+<p><img src="files/db-cap.png" style="height: 500px" /></a>
+</article>
+
+<article>
+<h3>CAP сказка из жизни</h3>
+<p>Исходно:<br/><a href="http://ksat.me/a-plain-english-introduction-to-cap-theorem/">A plain english introduction to CAP Theorem</a><br/>by Kaushik Sathupadi</p>
+</article>
+
+<article>
+<h3>CAP сказка: 1</h3>
+<ul class="build">
+<li>Идея: сервис - <span class="red">Позвони, напомню!</span></li>
+<li>моя записная книжка + key/value + мой телефон как API</li>
+<li>Растем, не успеваю ... </li>
+<li>Подключаю жену в параллель (единый входной номер ака balancer)</li>
+<li>Первый ой: ... звонил Джон, я ему сказал, что встреч нет, а ... </li>
+<li>анализ: Джон вчера попал не ко мне, а к жене</li>
+<li>Смотрим записнушку жены - ага, челу не повезло</li>
+<li><b>система not consistent (неоднородна?) - показания не сходятся</b></li>
+</ul>
+</article>
+
+<article>
+<h3>CAP сказка: 2</h3>
+<ul class="build">
+<li>надо что-то делать ... </li>
+<li>заводим протокол</li>
+<li>до того, как сказать "Спасибо, до связи!" мы записываем данные друг другу</li>
+<li>когда получаем звонок - все хорошо, все данные есть у всех</li>
+<li>трабл - на время "записать" - всем надо будет оторваться и потормозить, 
+да не проблема - все равно большую часть все ищут информацию</li>
+<li>ой 2:<b>а что, если кто-то недоступен (телефон, заболел, в туалет отошел)?</b></li>
+<li><b>система unavailable (недоступна?) - зависла и молчит "подождите, я щас засинкаюсь"</b></li>
+</ul>
+</article>
+
+<article>
+<h3>CAP сказка: 3</h3>
+<ul class="build">
+<li>надо что-то делать ...</li>
+<li>нам надо Consistent + Available </li>
+<li>идея: если чел рядом - мы ему говорим, а если нет - email пошлем, он утром прочитает</li>
+<li>и наступило у нас долгое счастье</li>
+<li>проблема ... вы думали что почта не ходит?</li>
+<li>не-а ... другая потеря коммуникаций - жена разговаривать не хочет :)</li>
+<li>произошло разделение сети (partition) и наши апдейты "не доходят".</li>
+<li><b>не смотря на наши усилия система не может жить с C + A + P</b></li>
+</ul>
+</article>
+
+<article>
+<h3></h3>
+<ul class="build">
+<li>заводим бегунок, который бегает туда-сюда, апдейты носит</li>
+<li>eventually (когда-ни-будь!) наши базы будут синхронизированы</li>
+<li>... если только ...</li>
+<li>eventually consistent / NoSQL</li>
+</ul>
+</article>
+
+<article>
+<h3>BASE</h3>
+<ul>
+<li>Basically Available</li>
+<li>Soft-state</li>
+<li>Eventually-consistent</li>
+</ul>
+<p class="smaller"><a href="http://queue.acm.org/detail.cfm?id=1394128">BASE: An Acid Alternative</a><br/>by Dan Pritchett</p>
+<ul class="smaller, build">
+<li>в принципе доступна</li>
+<li>в принципе знаем состояние</li>
+<li>когда-ни-будь сойдется</li>
+</ul>
+</article>
+
+      <article>
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse/index.html">http://fluffypulser.ru/static/dbcourse/index.html</a></li>
+        </ul>
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+    
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть восьмая
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2011-11-09
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+<h1>Много структурированных данных</h1>
+<p>Column Oriented Database</p>
+<p>Bigtable</p>
+<p>HBase </p>
+</article>
+
+<article>
+<h3>Новости</h3>
+<ul>
+<li><a href="http://www.readwriteweb.com/archives/common_crawl_foundation_announces_5_billion_page_w.php">New 5 Billion Page Web Index with Page Rank Now Available for Free from Common Crawl Foundation</a></li>
+</ul>
+<hr/>
+<p><a href="http://www.google.com/trends?q=nosql%2C+hdfs&ctab=0&geo=all&date=all&sort=0">Google trends: nosql, hdfs</a></p>
+<img class='centered' style='width: 500px' src="files/nosql_trend.png"/>
+</article>
+
+<article>
+<h3>Bigtable:<br/>A Distibuted Storage System for Structured Data</h3>
+<p>В 2006 году опубликована статья <a href="http://labs.google.com/papers/bigtable.html">labs.google.com/papers/bigtable.html</a>.</p>
+<p>Описывается система, позволившая хранить петабайты данных на тысячах серверов и используемая в 60+ проектах.</p>
+<p>Предоставляет API распределенной, сортированной Map с произвольными текстовыми данными в качестве значений.</p>
+</article>
+
+<article>
+<h3>Модель данных</h3>
+<p>Bigtable - распределенная, разряженная, многомерная сортированная Map (ассоциативный массив).</p>
+<p>Ключ массива - id ряда, колонка, отметка времени (timestamp).</p>
+<p>Значение - произвольный массив байт.</p>
+<pre>(row:string,column:string,time:int64) -&gt; string</pre>
+</article>
+
+<article class="smaller">
+<h3>Ряд</h3>
+<p>Ключ - произвольная строка с максимальной длиной 64K.</p>
+<p>Обычно ключ 10-100 символов.</p>
+<p>Любая операция в пределах ключа - атомарна с точки зрения пользователя.</p>
+<p>Так проще пользователям понимать поведение системы при многих потоках обновления.</p>
+<p>Данные сортируются в соответствии с порядком ключей (по алфавиту строчного представления ключа).</p>
+<p/>
+<p>Данные автоматически нарезаются на поддиапазоны ключей - <i>tablet</i> - блок данных для раскладки в кластер и регулировки нагрузки.</p>
+<p>Таким образом - запросы по малым диапазонам ключей (Иванов-Ивановы) можно обработать на 1 машине.</p>
+<p>Подбирая ключи - можно обеспечить локальность данных (обратная запись домена ru.yandex, ru.yandex.company) - данные будут лежать в одном или соседних tablets.</p>
+</article>
+
+<article class="smaller">
+<h3>Колонки (family:qualifier)</h3>
+<p><i>Column family</i>:<ul>
+<li>минимальный объект доступа к данным</li>
+<li>данные обычно одного типа - по типу и поведению</li>
+<li>все данные в column family совместно сжимаются</li>
+<li>обычно их немного (100 макс)</li>
+<li>название должно быть печатным</li>
+</ul></p>
+<p><i>Column qualifier</i>:
+<ul>
+<li>произвольная последовательность байт</li>
+<li>произвольное количество</li>
+</ul></p>
+<pre>language:id="en_US"
+anchor:ru.yandex.company="http://company.yandex.ru/public/articles/"
+anchor:com.google.labs="http://labs.google.com/papers/bigtable.html"</pre>
+<p>Доступ и хранение - на уровне отдельных column family. Таким образом один процесс - пишет base column family (CF), другой на основании этой CF создает anchor CF etc.</p>
+
+</article>
+
+<article class="smaller">
+<h3>Timestamp</h3>
+<ul>
+<li>каждая ячейка - с отметкой времени</li>
+<li>timestamp = 64-bit int задано сервером или клиентом</li>
+<li>отсортированы по убыванию (свежее сверху)</li>
+<li>на уровне настроек column family можно задать:<br/>
+* сколько версий хранить (3-5)<br/>
+* сколь долго ( 7 дней [ time to live - TTL ])</li>
+<li>данные автоматически "прячутся", если превышен TTL</li>
+<li>данные выкидываются в ходе garbage collection</li>
+</ul>
+<p>Пример: для CF content выставляем N=3 ... и получается, что в архиве хранятся последние три версии страницы, что видел crawler.</p>
+</article>
+
+<article class="smaller">
+<h3>Модель в картинках</h3>
+<img class='centered' style='width: 500px' src="files/bt_row_vs_column.png"/>
+<img class='centered' style='width: 500px' src="files/bt_cf_col_multi.png"/>
+<div class="source green">source:<a href="http://horicky.blogspot.com/2010/10/bigtable-model-with-cassandra-and-hbase.html">BigTable Model with Cassandra and HBase</a> by Ricky Ho</div>
+</article>
+
+<article>
+<p>
+  <img style="width: 100%" src="files/bt_row_vs_col.png"/>
+  <div class="source green"><a href="http://shop.oreilly.com/product/0636920014348.do">HBase: The Definitive Guide</a> by Lars George, Sept 2011</div>
+</p>
+</article>
+
+<article class="smaller">
+<pre>Запись в Bigtable
+
+// Open the table
+Table *T = OpenOrDie("/bigtable/web/webtable");
+
+// Write a new anchor and delete an old anchor
+RowMutation r1(T, "com.cnn.www");
+r1.Set("anchor:www.c-span.org", "CNN");
+r1.Delete("anchor:www.abc.com");
+Operation op;
+Apply(&amp;op, &amp;r1);
+
+Чтение из Bigtable
+
+Scanner scanner(T);
+ScanStream *stream;
+stream = scanner.FetchColumnFamily("anchor");
+stream-&gt;SetReturnAllVersions();
+scanner.Lookup("com.cnn.www");
+for (; !stream-&gt;Done(); stream-&gt;Next()) {
+  printf("%s %s %lld %s\n",
+    scanner.RowName(),
+    stream-&gt;ColumnName(),
+    stream-&gt;MicroTimestamp(),
+    stream-&gt;Value()); } </pre>
+</article>
+
+
+<article>
+<h3>Кирпичики</h3>
+<p>Bigtable:</p>
+<ul>
+<li>Живет в общем кластере</li>
+<li>Работает на тех же машинах, что и другие процессы (MapReduce)</p>
+<li>Поверх GFS - распределенная Google FS - т.е. не заботится о раскладке файлов</li>
+<li>Полагается на инфраструктуры кластера - исполнение задач, новые машины, раскладка файлов - "от кластера"</li>
+<li>Chubby - распределенный lock service с file / directory структурой - для сериализации операций, для регистрации Bigtable серверов</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Ключевые понятия</h3>
+<ul>
+<li>tablet - содержит данные для диапазона рядов</li>
+<li>tablet split - tablet дробится, когда превышает 100-200Мб</li>
+<li>tablet server - хранит у себя и отдает клиентам tablet данные ( от 10 до 1000 таблет на сервере )</li>
+<li>master server - назначает tablet -&gt; tablet server и отслеживает появление новых нод в кластере</li>
+<li>tablet log / write ahead log - данные сначала пишем в лог, дабы не потерять</li>
+<li>memtable - живущая в памяти, модифицируемая map, ограниченного размера (o(1))</li>
+<li>sstable files - отсортированные, неизменяемые данные на диске</li>
+<li>sstable compaction - слияние 2 x sstable одного размера в единый sstable</li>
+</ul>
+</article>
+
+<article class="smaller">
+<img class='centered' style='width: 300px' src="files/bt_read-write.png"/>
+<img class='centered' style='width: 650px' src="files/bt_rw_02.png"/>
+<div class="source green">source:<a href="http://horicky.blogspot.com/2010/10/bigtable-model-with-cassandra-and-hbase.html">BigTable Model with Cassandra and HBase</a> by Ricky Ho</div>
+</article>
+
+<article>
+<h3>SSTable (sorted string table)</h3>
+<ul>
+<li>persistent (настойчивый, упорный, стойкий) - <a href="http://lingvo.yandex.ru/persistent/%D1%81%20%D0%B0%D0%BD%D0%B3%D0%BB%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B3%D0%BE/">lingvo.yandex.ru/persistent/</a></li>
+<li>сортированная</li>
+<li>неизменяемая</li>
+<li>map (ассоциативный массив) string -&gt; string</li>
+<li>get(key)</li>
+<li>iterate where key &lt; x and key &gt; y</li>
+<li>сортированный файл данных</li>
+<li>индекс ключ - смещение</li>
+<li>bloom фильтр - есть ли ключ в sstable файле</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>HBase - http://hbase.apache.org/</h3>
+<p>HBase - открытая, доступная реализация Bigtable</p>
+<br/>
+<p>HBase is the Hadoop database.</p>
+<p>Use it when you need random, realtime read/write access to your Big Data.</p>
+<p>This project's goal is the hosting of very large tables -- billions of rows X millions of columns -- atop clusters of commodity hardware.</p>
+<p>HBase is an open-source, distributed, versioned, column-oriented store modeled after Google' Bigtable: A Distributed Storage System for Structured Data</p>
+<p>HBase provides Bigtable-like capabilities on top of Hadoop.</p>
+<p>Книга: <a href="http://shop.oreilly.com/product/0636920014348.do">HBase: The Definitive Guide</a> by Lars George, Sept 2011</p>
+</article>
+
+<article class="smaller">
+<h3>HBase - history</h3>
+<ul>
+<li>November 2006 - Google releases paper on BigTable</li>
+<li>February 2007 - Initial HBase prototype created as Hadoop contrib§</li>
+<li>October 2007 -  First “usable” HBase (Hadoop 0.15.0)</li>
+<li>January 2008 - Hadoop becomes an Apache top-level project, HBase becomes subproject</li>
+<li>October 2008 - HBase 0.18.1 released</li>
+<li>January 2009 -  HBase 0.19.0 released</li>
+<li>September 2009 - HBase 0.20.0 released, the performance release</li>
+<li>May 2010 -  HBase becomes an Apache top-level project</li>
+<li>June 2010 -  HBase 0.89.20100621, first developer release</li>
+<li>January 2011 - HBase 0.90.0 released, the durability and stability release</li>
+<li>Mid 2011 - HBase 0.92.0 released, tagged as coprocessor and security release</li>
+</ul>
+<div class="source green">source: <a href="http://shop.oreilly.com/product/0636920014348.do">HBase: The Definitive Guide</a> by Lars George, Sept 2011</div>
+</article>
+
+<article class="smaller">
+<img class='centered' style='width: 650px' src="files/hb_process_01.png"/>
+<div class="source green">source: <a href="http://horicky.blogspot.com/2010/10/bigtable-model-with-cassandra-and-hbase.html">BigTable Model with Cassandra and HBase</a> by Ricky Ho</div>
+</article>
+
+
+<article class="smaller">
+<h3>Архитектура</h3>
+<img class='centered' style='width: 800px' src="files/hbase_sto_01.png"/>
+<div class="source green">source: <a href="http://www.larsgeorge.com/2009/10/hbase-architecture-101-storage.html">HBase Architecture 101 - Storage</a> by Lars George</div>
+</article>
+
+<article class="smaller">
+<h3>HFile - SSTable</h3>
+<img class='centered' style='width: 800px' src="files/hbase_sto_02.png"/>
+<img class='centered' style='width: 800px' src="files/hbase_sto_03.png"/>
+<div class="source green">source: <a href="http://www.larsgeorge.com/2009/10/hbase-architecture-101-storage.html">HBase Architecture 101 - Storage</a> by Lars George</div>
+</article>
+
+<article class="smaller">
+<h3>Write Ahead Log</h3>
+<img class='centered' style='width: 500px' src="files/hbase_wal_01.png"/>
+<img class='centered' style='width: 400px' src="files/hbase_wal_02.png"/>
+<div class="source green">source: <a href="http://www.larsgeorge.com/2010/01/hbase-architecture-101-write-ahead-log.html">HBase Architecture 101 - Write-ahead-Log</a> by Lars George</div>
+</article>
+
+<article class="smaller">
+<h3>Список литературы</h3>
+<p><a href="http://labs.google.com/papers/bigtable.html">labs.google.com/papers/bigtable.html</a><br/>Bigtable: A Distributed Storage System for Structured Data by Fay Chang, et.</p>
+<p><a href="http://ofps.oreilly.com/titles/9781449396107/intro.html">HBase: The Definitive Guide: Intro</a> by Lars George, at OReilly
+<p><a href="http://shop.oreilly.com/product/0636920014348.do">HBase: The Definitive Guide</a> by Lars George, Sept 2011</p>
+<p>Блоги:<br/>
+<a href="http://www.larsgeorge.com/2009/10/hbase-architecture-101-storage.html">HBase Architecture 101 - Storage</a> by Lars George<br/>
+<a href="http://www.larsgeorge.com/2010/01/hbase-architecture-101-write-ahead-log.html">HBase Architecture 101 - Write-ahead-Log</a> by Lars George<br/>
+<a href="http://horicky.blogspot.com/2010/10/bigtable-model-with-cassandra-and-hbase.html">BigTable Model with Cassandra and HBase</a> by Ricky Ho<br/>
+<a href="http://www.larsgeorge.com/2009/11/hbase-vs-bigtable-comparison.html">HBase vs. BigTable Comparison</a> by Lars George<br/>
+<a href="http://arin.me/blog/wtf-is-a-supercolumn-cassandra-data-model">WTF is a SuperColumn? An Intro to the Cassandra Data Model</a> by Arin Sarkissan</br>
+<a href="http://www.facebook.com/notes/facebook-engineering/the-underlying-technology-of-messages/454991608919">The Underlying Technology of Messages</a> by Kannan Muthukkaruppan<br/>
+<a href="http://www.edwardcapriolo.com/roller/edwardcapriolo/entry/myths_rumors_fud_hate_nosql">Myths Rumors Fud Hate NoSQL Cassandra vs hbase</a> by Edward Capriolo<br/>
+<a href="http://blog.adku.com/2011/02/hbase-vs-cassandra.html">HBase vs Cassandra</a> by Jesse Shieh<br/>
+<a href="http://skillsmatter.com/podcast/nosql/cassandra">Real Life Cassandra</a> by Dave Gardner<br/>
+</p>
+
+</article>
+
+<article>
+        <p> 
+          <img style="width: 100%" src='files/bt_chat.png'>
+        </p>
+        <div class='source green'>
+          Source: Juho Mäkinen, <a href="http://www.juhonkoti.net/2010/09/25/example-how-to-model-your-data-into-nosql-with-cassandra">http://www.juhonkoti.net/2010/09/25/example-how-to-model-your-data-into-nosql-with-cassandra</a>
+        </div>
+</article>
+
+<article>
+<h3>Итого:</h3>
+<ul>
+<li>Big Data (Большие данные) - своеобразные технические решения</li>
+<li>разработанное в большой, закрытой компании решения - публикуются и становятся доступны</li>
+<li>доступные решения воспроизводится, разрабатывается, улучшается в Open Source решениях</li>
+<li>HStack (Hadoop, HBase, HDFS) - доступный способ выйти на обработку больших данных</li>
+<li>HStack используется в больших компаниях - <a href="http://wiki.apache.org/hadoop/PoweredBy">http://wiki.apache.org/hadoop/PoweredBy</a></li>
+<li>для моделирования с использованием преимуществ другого хранения - нужен опыт, через практику.</li>
+</ul>
+</article>
+
+      <article>
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse/index.html">http://fluffypulser.ru/static/dbcourse/index.html</a></li>
+        </ul>
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

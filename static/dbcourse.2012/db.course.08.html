@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+    
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть восьмая
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2012-11-19
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+<h1>Много структурированных данных</h1>
+<p>Hadoop / MapReduce</p>
+<p>Column Oriented Databases</p>
+<p>Bigtable / Hbase / Cassandra </p>
+<!-- <p>Zookeeper</p> -->
+</article>
+
+<article class="smaller">
+<img class='centered' style='width: 800px' src="files/google-trends-Nov2012.png"/>
+<div class="source"><a href="http://www.google.com/trends/explore#q=nosql%2Cmongodb%2Chadoop%2Chbase&date=1%2F2007%2072m&cmpt=q">Google trends: nosql, mongodb, hadoop, hbase.</a></div>
+</article>
+
+<article class="smaller">
+<h3>Map / Reduce</h3>
+<p>MapReduce - очень мощный механизм обработки данных, когда мы можем выделить фазы вычислений по типам - зависят от одного элемента, зависят от многих элементов.</p>
+<hr/>
+<p>У нас есть список значений (записей).</p>
+<p>У хотим что-то посчитать по этому списку.</p>
+<p>Введем понятие mapper - преобразует одно исходное значение в набор промежуточных (0 .. K значений).</p>
+<p>Введем понятие reducer - имея на входе N промежуточных значений выдает на выход 0 .. M результатов.</p>
+<hr/>
+<p>Примеры алгоритмов - max / min / avg / sum ... top 10 значений по какой-то выборке етс</p>
+</article>
+
+<article class="smaller">
+
+<!-- <div>Функция высшего порядка - функция, принимающая (или возвращающая) в качестве аргумента другую функцию ...<br/></div>-->
+<h3>Map</h3>
+<p>отображение (<a href="http://en.wikipedia.org/wiki/Map_(higher-order_function)">map</a>) - делаем новый список, элементы которого получены применением функции к элементам исходного списка</p>
+<img src="files/fp_map.png"/>
+<h3>Filter</h3>
+<p>фильтрация (<a href="http://en.wikipedia.org/wiki/Filter_(higher-order_function)">filter</a>) — каждый элемент списка проверяется на соответствие функции-предикату, и если элемент не соответствует, он выбрасывается из списка</p>
+<img src="files/fp_filter.png"/>
+<div class="source green">source:<a href="http://habrahabr.ru/blogs/python/50015/">Функциональное программирование для землян — списки</a> at habr</div>
+</article>
+
+<article class="smaller">
+<h3>Reduce</h3>
+<p>свертка (<a href="http://en.wikipedia.org/wiki/Fold_(higher-order_function)">reduce / fold</a>) - "сворачиваем" множество значений в одно, комбинируя последовательно элементы множества</p>
+<img src="files/fp_reduce.png"/> 
+<p>Требуются:
+<br/>Множество элементов: что мы будем "сворачивать"
+<br/>Начальный (пустой) элемент (unit): 1 - умножение, 0 - сложение, пустая строка - склеивание строк етс.
+<br/>функция двух параметров - комбинатор:
+<br/> v0 = combinator (unit, element);
+<br/> далее vi = combinator(Vprev, element);
+</p>
+<div class="source green">source:<a href="http://habrahabr.ru/blogs/python/50015/">Функциональное программирование для землян — списки</a> at habr</div>
+</article>
+
+<article class="smaller">
+<div>Возведем в квадрат - обычный подход - цикл (python)</div>
+<pre class="nocode">def square(x):
+    return x*x
+vals = [1, 2, 3, 4]
+newvals = []
+<span class="blue">for v in vals:
+    newvals.append(square(v))</span></pre>
+<div>map встроен в Python в 1993? году - воспользуемся:</div>
+<pre class="nocode">def map(f, s):
+    result = []
+    for x in s:
+            result.append(f(x))
+    return result
+
+vals = [1, 2, 3, 4]
+<span class="blue">newvals = map(square,vals)</span></pre>
+<div class="source green">source:<a href="http://habrahabr.ru/blogs/python/111756/">Откуда идут «функциональные» корни Python</a> at habrahabr.ru</div>
+</article>
+
+<article class="smaller">
+<p class="blue">Функциональная библиотека на Java</p>
+<pre class="nocode">interface Filter&lt;T&gt; { boolean fits(T t); }
+interface Function&lt;X, Y&gt; { Y apply(X arg); }
+interface BiFunction&lt;X, Y, Z&gt; { Z apply(X x, Y y); }
+
+public static &lt;X, Y&gt; List&lt;Y&gt; map(List&lt;X&gt; items, Function&lt;X, Y&gt; fu) {
+  final List&lt;Y&gt; out = new ArrayList&lt;Y&gt;(items.size());
+  for (final X item : items)
+    out.add(fu.apply(item));
+  return out; 
+}
+
+public static &lt;X&gt; List&lt;X&gt; filter(List&lt;X&gt; items, Filter&lt;X&gt; fi) {
+  final List&lt;X&gt; out = new ArrayList&lt;X&gt;();
+  for (final X item : items)
+    if (fi.fits(item))
+      out.add(item);
+  return out; 
+}
+
+public static &lt;U, X&gt; U reduce(List&lt;X&gt; items, BiFunction&lt;U, X, U&gt; fu, U unit) {
+  U out = unit;
+  for (final X item : items)
+    out = fu.apply(out, item);
+  return out; 
+}</pre>
+<div class="source"><a href="http://ru.wikipedia.org/wiki/%D0%A4%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D1%8F_%D0%B2%D1%8B%D1%81%D1%88%D0%B5%D0%B3%D0%BE_%D0%BF%D0%BE%D1%80%D1%8F%D0%B4%D0%BA%D0%B0">Функция высшего порядка</a> - функция, принимающая в качестве аргумента (или возвращающая) другую функцию ...</div>
+</article>
+
+<article class="fill smaller">
+<pre class="nocode">final static Function&lt;Integer, Integer&gt; <span class="blue">square</span> = 
+new Function&lt;Integer, Integer&gt;() {
+  public Integer apply(final Integer arg) {
+    return arg * arg;
+  }};
+
+final static Filter&lt;Integer&gt; <span class="blue">evenFilter</span> = 
+new Filter&lt;Integer&gt;() {
+  public boolean fits(final Integer integer) {
+    return integer % 2 == 0;
+  }};
+
+final List&lt;Integer&gt; list = new ArrayList&lt;Integer&gt;();
+for(int i = 0; i &lt; 50; i++) 
+  list.add(i);
+
+<span class="blue">final List&lt;Integer&gt; squaresOfEvens = map(filter(list, evenFilter), square);</span>
+
+final List&lt;Integer&gt; evens = filter(list, evenFilter);
+final List&lt;Integer&gt; squaresOfEvens = map(evens, square);
+<hr/>
+final List&lt;Integer&gt; squares = new ArrayList&lt;Integer&gt;();
+for (final Integer integer : list) {
+  if (integer % 2 == 0) {
+    squares.add(integer); // ой!!! забыл в квадрат возвести
+  }}
+</pre>
+</article>
+
+<article class="smaller">
+<p class="blue"><b>Плюсы</b></h3>
+<ul>
+<li>Формализуем понятия map / filter / reduce.</li>
+<li>Убираем бесконечные повторения for / if ... в которых прячутся ошибки.</li>
+<li>Пишем более "атомарными" операциями.</li>
+<li>Атомарные операции (функции, фильтры) отдельно тестируем и отлаживаем.</li>
+<li>Код в режиме "сборка из проверенных кирпичиков" (комбинации атомов).</li>
+</ul>
+<p class="blue"><b>Минусы</b></p>
+<ul>
+<li>непривычно (по началу)</li>
+<li>Java - много "лишнего" (слов, скобочек &lt; &gt; { } ) при описании - это неродное для языка - см. Java8 + lambda</li>
+<!-- <li>quiz: продумать как оптимизирвоать bulk операции (идем в базу не по одной записи, а сразу за 1000 - см. fetchSize)</li> -->
+<!--
+<h3>Неявные плюсы:</h3>
+<li>незаметно от пользователя - встраиваем многопоточность</li>
+-->
+</ul>
+<p><span class="green">Готовые библиотеки:</span><br/><br/>
+<a href="http://code.google.com/p/lambdaj/">LambdaJ</a> is a library that makes easier to to manipulate collections in a pseudo-functional and statically typed way.<br/>
+<a href="http://code.google.com/p/guava-libraries/">Guava-libraries</a> contains several of Google's core libraries that we rely on in our Java-based projects: collections, caching, primitives support, concurrency libraries, common annotations, string processing, I/O, and so forth.
+</p>
+</article>
+
+<article class="smaller">
+<p class="blue">А в чем изюминка?</p>
+<p>Детали map / reduce реализации отдельны и скрыты от разработчика...</p>
+<p>... следовательно могут оптимизироваться отдельно ...</p>
+<p>Многопоточность?</p>
+<p>Распределенность?</p>
+</article>
+
+<article class="smaller">
+<p class="blue">Реализация многопоточного map</p>
+<pre class="nocode">final static int threads = 50;
+public static &lt;X, Y&gt; List&lt;Y&gt; mapParallel(
+      final List&lt;X&gt; items, final Function&lt;X, Y&gt; fu) 
+    throws InterruptedException, ExecutionException {
+  // нарежем на кусочки по количеству тредов
+  final int chunkSize = items.size() % threads;
+  final List&lt;List&lt;X&gt;&gt; chunks = split(items, chunkSize);
+  // подготовим исполнение в threads потоков
+  final ExecutorService executorService = Executors.newFixedThreadPool(threads);
+
+  final Function&lt;List&lt;X&gt;, Callable&lt;List&lt;Y&gt;&gt;&gt; toCallable 
+      = new Function&lt;List&lt;X&gt;, Callable&lt;List&lt;Y&gt;&gt;&gt;() {
+    public Callable&lt;List&lt;Y&gt;&gt; apply(final List&lt;X&gt; arg) {
+      return new Callable&lt;List&lt;Y&gt;&gt;() {
+        public List&lt;Y&gt; call() throws Exception {
+          return map(arg, fu); // исполнение через простую map
+        } }; } }; 
+
+  // сконвертиуем кусочки и отправим на вычисление
+  final List&lt;Future&lt;List&lt;Y&gt;&gt;&gt; futures = executorService
+    .invokeAll(map(chunks, toCallable)); // отправим на исполнение
+  executorService.shutdown(); // выключим многотредность
+
+  final List&lt;Y&gt; out = new ArrayList&lt;Y&gt;(items.size());
+  for (final Future&lt;List&lt;Y&gt;&gt; item : futures) // соберем результаты
+      out.addAll(item.get()); // Future.get подождет, если результат еще не готов
+  return out; }
+</pre>
+</article>
+
+<article class="smaller">
+<p>... реализация же скрыта от разработчика, да? ...</p>
+<pre class="nocode">final static int MAP_MAX_IN_SINGLE_THREAD = 500;
+final static int MAP_MIN_CHUNK_PER_THREAD = 100;
+
+public static &lt;X, Y&gt; List&lt;Y&gt; map(List&lt;X&gt; items, Function&lt;X, Y&gt; fu) {
+  if (items.size() &gt; MAP_MAX_IN_SINGLE_THREAD &amp;&amp;
+       items.size() &gt; MAP_MIN_CHUNK_PER_THREAD)
+    return mapParallel(items, fu);
+
+  final List&lt;Y&gt; out = new ArrayList&lt;Y&gt;(items.size());
+  for (final X item : items)
+    out.add(fu.apply(item));
+  return out;
+}
+</pre>
+<p>Мы сделали (и спрятали от разработчика) многопоточное исполнение вычисления</p>
+<p>... отладили и проверили ...</p>
+<p>... автоматом встроили в кучу мест, где уже используется...</p>
+<p>... автоматически включающееся от размер коллекции.</p>
+<p><span class="green">Кто хочет поискать по всему коду циклы for и встроить по тем местам многопоточность?</span></p> 
+</article>
+
+<article>
+<h3>MapReduce - мощная вычислительная модель.</h3>
+<p>Разделение кода<br/>
+<dl>
+<dt>вычисление - бизнес-логика:</dt>
+<dd>фунции, фильтры, комбинаторы</dd>
+<dt>исполнение - библиотека:</dt>
+<dd>map, filter, reduce</dd>
+</dt>
+<p>Это позволяет кодировать разным людям разные части системы ... и оптимизировать код по частям.</p>
+<p>Кому-то интересно возиться с библиотеками, кому-то интересно писать код и получать результаты от бизнес-части</p>
+</article>
+
+<article class="smaller">
+<h3>MapReduce by Google</h3>
+<p>В 2004-ом году Google публикует статью <a href="http://labs.google.com/papers/mapreduce.html">MapReduce: Simplified Data Processing on Large Clusters</a> by Jeffrey Dean и Sanjay Ghemawat (<a href="http://labs.google.com/papers/mapreduce-osdi04.pdf">pdf</a> / <a href="http://research.google.com/archive/mapreduce-osdi04-slides/index.html">slides</a>).</p>
+<p>Рассматривается вычислительная модель MapReduce и внутренняя реализация, распараллеливающая вычисление в кластера большого размера.</p>
+<hr/>
+<!-- <p>Малоопытные разработчики могут писать задачи для кластера ... на тысячи машин.</p> -->
+<p>Помните реализацию многопоточного map? Хотите сами написать и отладить?</p>
+<p>А можете сами написать свои filter / map / reduce и отладить локально на одной машине?</p>
+<p>А потом отправляете их в кластер на вычисление и библиотека позаботится об использовании тысяч машин.</p>
+</article>
+
+<article class="smaller">
+<h3>Задачи</h3>
+<ul>
+<li>Обрабатывать много данных, дабы получать еще много данных</li>
+<li>Использовать тысячи компьютеров</li>
+<li>... это должно быть просто!</li>
+</ul>
+<h3>Требования</h3>
+<ul>
+<li>Автоматическая параллелизация</li>
+<li>Устойчивость к проблемам кластера</li>
+<li>Управление I/O ресурсами</li>
+<li>Отчеты и мониторинги</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h4>Вход</h4>
+<p>Наборы ключ-значение (строка - строка)</p>
+<h4>Программист предоставляет</h4>
+<p>
+<span class="blue">map (in_key, in_value) -&gt; list(out_key, intermediate_value)<br/></span>
+и<br/>
+<span class="blue">reduce (out_key, list(intermediate_value)) -&gt; list(out_value)<br/></span>
+</p>
+<h4>Система</h4>
+<ul>
+<li>Обрабатывает входные пары ключ-значение</li>
+<li>Получает промежуточные пары</li>
+<li>Собирает все пары с одним ключем в связку ключ-набор значений</li>
+<li>Производит выходной набор значений (обычно один)</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Example: Count word occurrences</h3>
+<pre>map(String input_key, String input_value):
+    // input_key: document name
+    // input_value: document contents
+    for each word w in input_value:
+      EmitIntermediate(w, "1");
+
+reduce(String output_key, Iterator intermediate_values):
+    // output_key: a word
+    // output_values: a list of counts
+    int result = 0;
+    for each v in intermediate_values:
+      result += ParseInt(v);
+    Emit(AsString(result));</pre>
+<p>Pseudocode: See appendix in paper for real code</p>
+<div class="source">source: <a href="http://labs.google.com/papers/mapreduce-osdi04-slides/index-auto-0004.html">слайды MapReduce:Simplified Data ...</a></div>
+</article>
+
+<article class="smaller">
+<h4>Важные детали</h4>
+<ul>
+<li>Данные храняться в кластере в распределенной GFS</li>
+<li>Есть понятие локальности - спрашиваем у GFS на каких машинах данные - туда ставим задачу на исполнение</li>
+<li>каждому мапперу - 16-64Мб данных на вход</li>
+<li>количество исходных мапперов до 200 000</li>
+<li>количество редьюсеров - 5 000</li>
+<li>при количестве машин - 2 000</li>
+<li>есть машина Master - отслеживающая таски, если она упала - перезапускай всю задачу</li>
+<li>результаты map - пишем в локальную файловую систему - скорость важна, надежность - нет, ибо можно пересчитать</li>
+<li>"дешево" пересчитать Map шаг - последние шаги запускаем повторно в параллель - просто дабы быстрее было, откидывая тормозов</li>
+<li>упавший шаг Reduce - просто перестартовываем, ибо данные в надежном GFS</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h5>Для чего используется</h5>
+<ul>
+<li>распределенный grep</li>
+<li>распределенный sort</li>
+<li><span class="blue">инвертированный индекс (для 10^10 документов)</span></li>
+<li>анализ логов</li>
+<li>кластеризация документов</li>
+<li>machine learning</li>
+<li>graph algorithms</li>
+<li>matrix algorithms</li>
+<li>etc</li>
+</ul>
+<h5>Литература по MapReduce</h5>
+<ul>
+<li><a href="http://horicky.blogspot.com/2010/08/designing-algorithmis-for-map-reduce.html">Designing algorithms for Map Reduce</a> by Ricky Ho</li>
+<li><a href="http://www.dbms2.com/2008/08/26/known-applications-of-mapreduce/">Known applications of MapReduce</a></li>
+<li><a href="http://code.google.com/intl/ru-RU/edu/submissions/mapreduce-minilecture/listing.html">Google: Cluster Computing and MapReduce</a> - видео и материалы лекций</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Hadoop / Hadoop MapReduce</h3>
+<p><a href="http://wiki.apache.org/hadoop/PoweredBy">Hadoop Wiki: PoweredBy</a></p>
+<p>Facebook, Amazon, Adobe, AOL, Baidu, EBay (532 node, 8*532 core, 5.3Pb), Google - для студентов, IBM, Last.fm, LinkedIn, Yahoo (100 000+ cores, 40 000+ nodes) ...</p>
+<ul>
+<li>свободно распространяемый аналог</li>
+<li>доступны исходные коды - можно почитать</li>
+<li>минимальная конфигурация - один компьютер (<a href="http://hadoop.apache.org/common/docs/current/single_node_setup.html">single node setup</a>)</li>
+<li>много литературы доступно в интернет и книжных магазинах</li>
+<li>хороший, подробный <a href="http://hadoop.apache.org/common/docs/current/mapred_tutorial.html">тюториал</a></li>
+<li><a href="http://habrahabr.ru/tag/Hadoop/">Hadoop на Хабре</a></li>
+</ul>
+<p>Amazon предлагает облако Hadoop машин - <a href="http://aws.amazon.com/elasticmapreduce/">Amazon Elastic MapReduce</a> ... с ценами от $0.015 (45 копеек) за час машинного времени.</p>
+</article>
+
+<article class="smaller">
+<h3>MongoDB ... MapReduce</h3>
+<p><a href="http://www.mongodb.org/display/DOCS/Production+Deployments">Production Deployments</a>: Disney, GitHub, FourSquare, SourceForge, etc...</p>
+<ul>
+<li>MongoDB - document oriented storage</li>
+<li>очень быстрое (много кеширует и использует memory mapped files)</li>
+<li>много типов index-ов</li>
+<li>поддерживает шардирование и реплики</li>
+<li>активно использует JavaScript / JSON</li>
+<li>данные внутри в BSON (binary-json)</li>
+<li>своя GridFS для хранения больших файлов</li>
+<li>... <span class="blue">поддерживает mapReduce через javascript функции</span></li>
+</ul>
+<p>Уже упоминалась в <a href="http://fluffypulser.ru/static/dbcourse.2012/db.course.05.html#9">лекции № 05</a>.</p>
+</article>
+
+<article class="smaller">
+<h3>Как поставить mongo?</h3>
+<p><a href="http://www.mongodb.org/display/DOCS/Quickstart+OS+X">Quickstart OS X</a></p>
+<pre class="nocode">
+$ brew update
+$ brew install mongodb
+...
+mongod run --config /usr/local/Cellar/mongodb/2.0.1-x86_64/mongod.conf
+
+В конфиге указываем
+# Store data in /usr/local/var/mongodb instead of the default /data/db
+dbpath = /usr/local/var/mongodb
+# Only accept local connections
+bind_ip = 127.0.0.1
+
+pulser-osx:~ pulser$ mongo
+MongoDB shell version: 2.0.1
+connecting to: test
+&gt; show dbs
+admin   (empty)
+csc 0.203125GB
+local   (empty) 
+&gt; use csc
+switched to db csc
+&gt; db.student.count()
+41</pre>
+</article>
+
+<article class="smaller">
+<h3>Как работать с MongoDB?</h3>
+<p>Пишем скрипт на javascript ... и кидаем через command-line</p>
+<pre class="nocode">  1 t = db.student;
+  2 t.drop();
+  3 
+  4 t.save({name:"Аганезов Сергей",department:"UN",vuz:"ИТМО"})
+  5 t.save({name:"Альперович Семен",department:"SE",vuz:"СПбГПУ"})
+
+
+ 48 var m = function () {
+ 49     emit(this.vuz, {fio:this.name});
+ 50 };
+ 51 
+ 52 var r = function (key, values) {
+ 53     var sum = 0;
+ 54     var fu = function (doc) { sum = sum + 1; };
+ 55     values.forEach(fu);
+ 56     return {vuz:key, count:sum};
+ 57 };
+ 58 
+ 59 var op = db.student.mapReduce(m, r, {out:"mr_result"});
+ 60 var done = db.mr_result.find("this.value.count &gt; 0");
+ 61 
+ 62 done.forEach(printjson);</pre>
+</article>
+
+<article class="smaller">
+<h3>Пример вывода</h3>
+<pre class="nocode">pulser-osx:tmp pulser$ mongo csc insert.js 
+MongoDB shell version: 2.0.1
+connecting to: csc
+{ "_id" : "ГУАП", "value" : { "vuz" : "ГУАП", "count" : 2 } }
+{ "_id" : "ИТМО", "value" : { "vuz" : "ИТМО", "count" : 20 } }
+{ "_id" : "СПбГПУ", "value" : { "vuz" : "СПбГПУ", "count" : 9 } }
+{ "_id" : "СПбГУ", "value" : { "vuz" : "СПбГУ", "count" : 6 } }</pre>
+<p>Литература:</p>
+<ul>
+<ul><a href="http://www.mongodb.org/display/DOCS/MapReduce">MongoDB: MapReduce</a> - тюториал</ul>
+<ul><a href="http://blog.fiesta.cc/post/10980328832/walkthrough-a-mongodb-map-reduce-job">Walkthrough: A MongoDB Map/Reduce Job</a></ul>
+<ul><a href="http://kylebanker.com/blog/2009/12/mongodb-map-reduce-basics/">MongoDB Aggregation III: Map-Reduce Basics</a></ul>
+<ul><a href="https://gist.github.com/304154">Basic text search with relevancy for MongoDB</a> - 65 строк на Ruby - строим inverted index по коллекции и отдаем ранжированный ответ - поисковая система в 65 строк (!!!)</ul>
+</ul>
+</article>
+
+<article class="smaller">
+<p><span class="blue"><b>Простыми словами.</b></span></p>
+<p>Существует облако ...</p>
+<p>Вы пишете последовательность шагов map-reduce-map-map-reduce.</p>
+<p>Вы определяете входную коллекцию и название коллекции, куда положить результат.</p>
+<p>Вы собираете свои шаги в пакет (скрипт в случае mongo, jar в случае hadoop)</p>
+<p>Отправляете скрипт и конфиг в облако на вычисление.</p>
+<p>Забираете результат из коллекции результатов.</p>
+<hr/>
+<p>Облако берет конфиг и пакет к себе, раскладывает его по нодам.</p>
+<p>На каждой ноде прогоняет локальный _кусочек_ коллекции через map и кладет в коллекцию временных результатов.</p>
+<p>Для каждого reduce обеспечивает что все value для конкретного ключа попадут в один инстанс reduce. Для этого коллекция временных результатов сортируется и собирается на новых нодах.</p>
+<p>По окончании всех шагов облако складывает результаты в указанную коллекцию.</p>
+</article>
+
+<article>
+<q>This slide intentionally left blank</q>
+</article>
+
+<article>
+<h3>Bigtable:<br/>A Distibuted Storage System for Structured Data</h3>
+<p>В 2006 году опубликована статья <a href="http://labs.google.com/papers/bigtable.html">labs.google.com/papers/bigtable.html</a>.</p>
+<p>Описывается система, позволившая хранить петабайты данных на тысячах серверов и используемая в 60+ проектах.</p>
+<p>Предоставляет API распределенной, сортированной Map с произвольными текстовыми данными в качестве значений.</p>
+</article>
+
+<article>
+<h3>Модель данных</h3>
+<p>Bigtable - распределенная, разряженная, многомерная сортированная Map (ассоциативный массив).</p>
+<p>Ключ массива - id ряда, колонка, отметка времени (timestamp).</p>
+<p>Значение - произвольный массив байт.</p>
+<pre class="nocode">(
+  row:string,
+  column:string,
+  time:int64
+) -&gt; string</pre>
+</article>
+
+<article class="smaller">
+<h3>Ряд</h3>
+<p>Ключ - произвольная строка с максимальной длиной 64K.</p>
+<p>Обычно ключ 10-100 символов.</p>
+<p>Любая операция в пределах ключа - атомарна с точки зрения пользователя.</p>
+<p>Так проще пользователям понимать поведение системы при многих потоках обновления.</p>
+<p>Данные сортируются в соответствии с порядком ключей (по алфавиту строчного представления ключа).</p>
+<p/>
+<p>Данные автоматически нарезаются на поддиапазоны ключей - <i>tablet</i> - блок данных для раскладки в кластер и регулировки нагрузки.</p>
+<p>Таким образом - запросы по малым диапазонам ключей (Иванов-Ивановы) можно обработать на 1 машине.</p>
+<p>Подбирая ключи - можно обеспечить локальность данных и данные будут лежать в одном или соседних tablets, например обратная запись домена в качестве ключа: <span class="green">ru.yandex, ru.yandex.company</span></p> 
+</article>
+
+<article class="smaller">
+<h3>Колонки (family:qualifier)</h3>
+<p><i>Column family</i>:<ul>
+<li>минимальный объект доступа к данным</li>
+<li>данные обычно одного типа - по типу и поведению</li>
+<li>все данные в column family совместно сжимаются</li>
+<li>обычно их немного (100 макс)</li>
+<li>название должно быть печатным</li>
+</ul></p>
+<p><i>Column qualifier</i>:
+<ul>
+<li>произвольная последовательность байт</li>
+<li>произвольное количество</li>
+</ul></p>
+</article>
+
+<article class="smaller">
+<img src="files/google_bigtable_columns_sample.png" style="width: 800px" />
+<pre>language:id="en_US"
+anchor:ru.yandex.company="http://company.yandex.ru/public/articles/"
+anchor:com.google.labs="http://labs.google.com/papers/bigtable.html"</pre>
+<p>Доступ и хранение - на уровне отдельных column family.</p>
+<p>Один процесс - пишет base column family (CF) - contents</p>
+<p>Другой на основании этой CF создает anchor CF etc.</p>
+<div class="source">Source: Google Bigtable PDF</div>
+
+</article>
+
+<article class="smaller">
+<h3>Timestamp</h3>
+<ul>
+<li>каждая ячейка - с отметкой времени</li>
+<li>timestamp = 64-bit int задано сервером или клиентом</li>
+<li>отсортированы по убыванию (свежее сверху)</li>
+<li>на уровне настроек column family можно задать:<br/>
+* сколько версий хранить (3-5)<br/>
+* сколь долго ( 7 дней [ time to live - TTL ])</li>
+<li>данные автоматически "прячутся", если превышен TTL</li>
+<li>данные выкидываются в ходе garbage collection</li>
+</ul>
+<p>Пример: для CF content выставляем N=3 ... и получается, что в архиве хранятся последние три версии страницы, что видел crawler.</p>
+</article>
+
+<article class="smaller">
+<h3>Модель в картинках</h3>
+<img class='centered' style='width: 500px' src="files/bt_row_vs_column.png"/>
+<img class='centered' style='width: 500px' src="files/bt_cf_col_multi.png"/>
+<div class="source green">source:<a href="http://horicky.blogspot.com/2010/10/bigtable-model-with-cassandra-and-hbase.html">BigTable Model with Cassandra and HBase</a> by Ricky Ho</div>
+</article>
+
+<article class="smaller">
+<img src="files/hb_cf_user_social.png" style="width: 800px"/>
+<div class="source green">source:<a href="http://horicky.blogspot.com/2010/10/bigtable-model-with-cassandra-and-hbase.html">BigTable Model with Cassandra and HBase</a> by Ricky Ho</div>
+</article>
+
+<article>
+<p>
+  <img style="width: 100%" src="files/bt_row_vs_col.png"/>
+  <div class="source green"><a href="http://shop.oreilly.com/product/0636920014348.do">HBase: The Definitive Guide</a> by Lars George, Sept 2011</div>
+</p>
+</article>
+
+<article class="smaller">
+<pre class="nocode">Запись в Bigtable
+
+// Open the table
+Table *T = OpenOrDie("/bigtable/web/webtable");
+
+// Write a new anchor and delete an old anchor
+RowMutation r1(T, "com.cnn.www");
+r1.Set("anchor:www.c-span.org", "CNN");
+r1.Delete("anchor:www.abc.com");
+Operation op;
+Apply(&amp;op, &amp;r1);
+
+Чтение из Bigtable
+
+Scanner scanner(T);
+ScanStream *stream;
+stream = scanner.FetchColumnFamily("anchor");
+stream-&gt;SetReturnAllVersions();
+scanner.Lookup("com.cnn.www");
+for (; !stream-&gt;Done(); stream-&gt;Next()) {
+  printf("%s %s %lld %s\n",
+    scanner.RowName(),
+    stream-&gt;ColumnName(),
+    stream-&gt;MicroTimestamp(),
+    stream-&gt;Value()); } </pre>
+</article>
+
+
+<article class="smaller">
+<h3>Кирпичики</h3>
+<p>Bigtable:</p>
+<ul>
+<li>Живет в общем кластере</li>
+<li>Работает на тех же машинах, что и другие процессы (MapReduce)</p>
+<li>Поверх GFS - распределенная Google FS - т.е. не заботится о раскладке файлов</li>
+<li>Полагается на инфраструктуры кластера - исполнение задач, новые машины, раскладка файлов - "от кластера"</li>
+<li>Chubby - распределенный lock service с file / directory структурой - для сериализации операций, для регистрации Bigtable серверов</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Ключевые понятия</h3>
+<ul>
+<li>tablet - содержит данные для диапазона рядов</li>
+<li>tablet split - tablet дробится, когда превышает 100-200Мб</li>
+<li>tablet server - хранит у себя и отдает клиентам tablet данные ( от 10 до 1000 таблет на сервере )</li>
+<li>master server - назначает tablet -&gt; tablet server и отслеживает появление новых нод в кластере</li>
+<li>tablet log / write ahead log - данные сначала пишем в лог, дабы не потерять</li>
+<li>memtable - живущая в памяти, модифицируемая map, ограниченного размера (o(1))</li>
+<li>sstable files - отсортированные, неизменяемые данные на диске</li>
+<li>sstable compaction - слияние 2 x sstable одного размера в единый sstable</li>
+</ul>
+</article>
+
+<article class="smaller">
+<!-- <img class='centered' style='width: 300px' src="files/bt_read-write.png"/> -->
+<img class='centered' style='width: 750px' src="files/bt_rw_02.png"/>
+<div class="source green">source:<a href="http://horicky.blogspot.com/2010/10/bigtable-model-with-cassandra-and-hbase.html">BigTable Model with Cassandra and HBase</a> by Ricky Ho</div>
+</article>
+
+<article class="smaller">
+<h3>SSTable (sorted string table)</h3>
+<ul>
+<li>persistent (настойчивый, упорный, стойкий) - <a href="http://lingvo.yandex.ru/persistent/%D1%81%20%D0%B0%D0%BD%D0%B3%D0%BB%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%B3%D0%BE/">lingvo.yandex.ru/persistent/</a></li>
+<li>сортированная</li>
+<li>неизменяемая</li>
+<li>map (ассоциативный массив) string -&gt; string</li>
+<li>get(key)</li>
+<li>iterate where key &lt; x and key &gt; y</li>
+<li>индекс ключ - смещение</li>
+<li>bloom фильтр - есть ли ключ в sstable файле</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>HBase - http://hbase.apache.org/</h3>
+<p>HBase - открытая, доступная реализация Bigtable</p>
+<p>HBase is the Hadoop database.</p>
+<p>Use it when you need random, realtime read/write access to your Big Data.</p>
+<p>This project's goal is the hosting of very large tables -- billions of rows X millions of columns -- atop clusters of commodity hardware.</p>
+<p>HBase is an open-source, distributed, versioned, column-oriented store modeled after Google' Bigtable: A Distributed Storage System for Structured Data</p>
+<p>HBase provides Bigtable-like capabilities on top of Hadoop.</p>
+<p>Книга: <a href="http://shop.oreilly.com/product/0636920014348.do">HBase: The Definitive Guide</a> by Lars George, Sept 2011</p>
+<p><span class="blue">NB:</span> документация утверждает, что если у вас сотни Mb данных и десятки миллионов рядов - не используйте, данных мало, кластер простаивать будет :).</p>
+</article>
+
+<article class="smaller">
+<h3>HBase - history</h3>
+<ul>
+<li>November 2006 - Google releases paper on BigTable</li>
+<li>February 2007 - Initial HBase prototype created as Hadoop contrib</li>
+<li>October 2007 -  First “usable” HBase (Hadoop 0.15.0)</li>
+<li>January 2008 - Hadoop becomes an Apache top-level project, HBase becomes subproject</li>
+<li>October 2008 - HBase 0.18.1 released</li>
+<li>January 2009 -  HBase 0.19.0 released</li>
+<li>September 2009 - HBase 0.20.0 released, the performance release</li>
+<li>May 2010 -  HBase becomes an Apache top-level project</li>
+<li>June 2010 -  HBase 0.89.20100621, first developer release</li>
+<li>January 2011 - HBase 0.90.0 released, the durability and stability release</li>
+<li>Mid 2011 - HBase 0.92.0 released, tagged as coprocessor and security release</li>
+</ul>
+<div class="source green">source: <a href="http://shop.oreilly.com/product/0636920014348.do">HBase: The Definitive Guide</a> by Lars George, Sept 2011</div>
+</article>
+
+<article class="smaller">
+<img class='centered' style='width: 750px' src="files/hb_process_01.png"/>
+<div class="source green">source: <a href="http://horicky.blogspot.com/2010/10/bigtable-model-with-cassandra-and-hbase.html">BigTable Model with Cassandra and HBase</a> by Ricky Ho</div>
+</article>
+
+
+<article class="smaller">
+<h3>Архитектура</h3>
+<img class='centered' style='width: 800px' src="files/hbase_sto_01.png"/>
+<div class="source green">source: <a href="http://www.larsgeorge.com/2009/10/hbase-architecture-101-storage.html">HBase Architecture 101 - Storage</a> by Lars George</div>
+</article>
+
+<article class="smaller">
+<h3>HFile - SSTable</h3>
+<img class='centered' style='width: 800px' src="files/hbase_sto_02.png"/>
+<img class='centered' style='width: 800px' src="files/hbase_sto_03.png"/>
+<div class="source green">source: <a href="http://www.larsgeorge.com/2009/10/hbase-architecture-101-storage.html">HBase Architecture 101 - Storage</a> by Lars George</div>
+</article>
+
+<article class="smaller">
+<h3>Write Ahead Log</h3>
+<img class='centered' style='width: 500px' src="files/hbase_wal_01.png"/>
+<img class='centered' style='width: 400px' src="files/hbase_wal_02.png"/>
+<div class="source green">source: <a href="http://www.larsgeorge.com/2010/01/hbase-architecture-101-write-ahead-log.html">HBase Architecture 101 - Write-ahead-Log</a> by Lars George</div>
+</article>
+
+<article class="smaller">
+<h3>Список литературы</h3>
+<p><a href="http://labs.google.com/papers/bigtable.html">labs.google.com/papers/bigtable.html</a><br/>Bigtable: A Distributed Storage System for Structured Data by Fay Chang, et.</p>
+<p><a href="http://ofps.oreilly.com/titles/9781449396107/intro.html">HBase: The Definitive Guide: Intro</a> by Lars George, at OReilly
+<p><a href="http://shop.oreilly.com/product/0636920014348.do">HBase: The Definitive Guide</a> by Lars George, Sept 2011</p>
+<p>Блоги:<br/>
+<a href="http://www.larsgeorge.com/2009/10/hbase-architecture-101-storage.html">HBase Architecture 101 - Storage</a> by Lars George<br/>
+<a href="http://www.larsgeorge.com/2010/01/hbase-architecture-101-write-ahead-log.html">HBase Architecture 101 - Write-ahead-Log</a> by Lars George<br/>
+<a href="http://horicky.blogspot.com/2010/10/bigtable-model-with-cassandra-and-hbase.html">BigTable Model with Cassandra and HBase</a> by Ricky Ho<br/>
+<a href="http://www.larsgeorge.com/2009/11/hbase-vs-bigtable-comparison.html">HBase vs. BigTable Comparison</a> by Lars George<br/>
+<a href="http://arin.me/blog/wtf-is-a-supercolumn-cassandra-data-model">WTF is a SuperColumn? An Intro to the Cassandra Data Model</a> by Arin Sarkissan</br>
+<a href="http://www.facebook.com/notes/facebook-engineering/the-underlying-technology-of-messages/454991608919">The Underlying Technology of Messages</a> by Kannan Muthukkaruppan<br/>
+<a href="http://www.edwardcapriolo.com/roller/edwardcapriolo/entry/myths_rumors_fud_hate_nosql">Myths Rumors Fud Hate NoSQL Cassandra vs hbase</a> by Edward Capriolo<br/>
+<a href="http://blog.adku.com/2011/02/hbase-vs-cassandra.html">HBase vs Cassandra</a> by Jesse Shieh<br/>
+<a href="http://skillsmatter.com/podcast/nosql/cassandra">Real Life Cassandra</a> by Dave Gardner<br/>
+</p>
+</article>
+
+<article class="smaller">
+<p><span class="blue"><b>Немножко баловства.</b></span> / <a href="http://hbase.apache.org/book/quickstart.html">Hbase: Quickstart</a></p>
+<pre class="nocode">
+wget http://www.sai.msu.su/apache/hbase/hbase-0.94.2/hbase-0.94.2.tar.gz
+tar -xzvf hbase-0.94.2.tar.gz
+cd hbase-0.94.2
+
+mkdir /hbase.pulser
+chmod a+w /hbase.pulser
+
+vim conf/hbase-site.xml
+&lt;configuration&gt;
+  &lt;property&gt;
+    &lt;name&gt;hbase.rootdir&lt;/name&gt;
+    &lt;value&gt;file:///hbase.pulser/hbase&lt;/value&gt;
+  &lt;/property&gt;
+  &lt;property&gt;
+    &lt;name&gt;hbase.zookeeper.property.dataDir&lt;/name&gt;
+    &lt;value&gt;/hbase.pulser/zookeeper&lt;/value&gt;
+  &lt;/property&gt;
+  &lt;property&gt;
+    &lt;name&gt;hbase.zookeeper.quorum&lt;/name&gt;
+    &lt;value&gt;localhost&lt;/value&gt;
+  &lt;/property&gt;
+&lt;/configuration&gt;
+
+<span class="blue"><b># закомментируйте 127.0.1.1 !!! на Ubuntu
+vim /etc/hosts 
+# 127.0.1.1 my-server-name-here</b>
+</pre>
+</article>
+
+<article class="smaller">
+<pre class="nocode">
+pulser@nas:~/my.hbase/hbase-0.94.2$ ./bin/start-hbase.sh 
+starting master, logging to /home/pulser/my.hbase/hbase-0.94.2/logs/hbase-master.out
+
+pulser@nas:~/my.hbase/hbase-0.94.2$ ./bin/hbase shell
+hbase(main):001:0&gt;<span class="blue"><b>help</b></span>
+
+hbase(main):053:0&gt; create 'test', 'cfi', 'cfs'
+hbase(main):054:0&gt; put 'test', 'pu', 'cfi:login', 'pulser'
+hbase(main):055:0&gt; put 'test', 'pu', 'cfi:sname', 'Teterin'
+hbase(main):056:0&gt; put 'test', 'pu', 'cfi:name', 'Ilja'
+
+hbase(main):058:0&gt; put 'test', 'pu', 'cfi:name', 'Ilya'
+hbase(main):059:0&gt; scan 'test'
+ROW                    COLUMN+CELL                                                    
+ pu                    column=cfi:login, timestamp=1353318747337, value=pulser        
+ pu                    column=cfi:name, timestamp=1353318837414, value=Ilya           
+ pu                    column=cfi:sname, timestamp=1353318767678, value=Teterin       
+
+hbase(main):063:0&gt; get 'test', 'pu', {COLUMN=&gt;'cfi:name', VERSIONS=&gt;5}
+COLUMN                 CELL                                                           
+ cfi:name              timestamp=1353318837414, value=Ilya                            
+ cfi:name              timestamp=1353318783486, value=Ilja  
+
+hbase(main):064:0&gt; put 'test', 'pu', 'cfs:01', 'vovan'
+hbase(main):065:0&gt; put 'test', 'pu', 'cfs:03', 'piter'
+hbase(main):066:0&gt; put 'test', 'pu', 'cfs:02', 'kolyan'
+</pre>
+</article>
+
+<article class="smaller">
+<p><span class="blue"><b>Cassandra</b> / <a href="http://cassandra.apache.org/">http://cassandra.apache.org/</a></p>
+<p>Column oriented хранилище, изначально из Facebook</p>
+<p>Отказ от Single Point Of Failure (SPOF) - все ноды равны.</p>
+<p>Каждая нода "поддерживает" несколько других (служит backup нодой для M предыдущих по кольцу).</p>
+<p>Ноды выстроены в hash-ring - можете по hash (2^127) = равномерно, но никаких range scan</p>
+<p>Можете положить токены по префиксам ключей - получите range scan, но неравномерную раскладку по нодам</p>
+<p>N-R-W = настраиваемая consistency.</p>
+<p>N - колво нод в реплике, R - сколько нод спросим при чтении, W - на сколько нод запишем значение.</p>
+<p><span class="red">N &lt; R + W =&gt; жесткая полная consistency!</p>
+<p>N-R-W настраивается на каждую column family.</p>
+</article>
+
+<article class="smaller">
+<p>Запись можно делать на любую ноду кластера.</p>
+<p>Read Repair - если R ноды "не согласны" - выпихиваем самое свежее на них (в фоне).</p>
+<p>Hinted Handoff - (надо записать в B, B недоступен, пишем в C и говорим "отдай B, когда вернется")</p>
+<p>Brisk (<a href="http://www.datastax.com/docs/0.8/brisk/about_brisk">http://www.datastax.com/docs/0.8/brisk/about_brisk</a>) - Brisk is an open-source Hadoop and Hive distribution developed by DataStax that utilizes Apache Cassandra for its core services and storage. Brisk provides Hadoop MapReduce capabilities using CassandraFS, an HDFS-compatible storage layer inside Cassandra.</p>
+</article>
+
+<article>
+        <p> 
+          <img style="width: 100%" src='files/bt_chat.png'>
+        </p>
+        <div class='source green'>
+          Source: Juho Mäkinen, <a href="http://www.juhonkoti.net/2010/09/25/example-how-to-model-your-data-into-nosql-with-cassandra">http://www.juhonkoti.net/2010/09/25/example-how-to-model-your-data-into-nosql-with-cassandra</a>
+        </div>
+</article>
+
+<article class="smaller">
+<h3>Итого:</h3>
+<ul>
+<li>Big Data (Большие данные) - своеобразные технические решения</li>
+<li>разработанное в большой, закрытой компании решения - публикуются и становятся доступны</li>
+<li>доступные решения воспроизводится, разрабатывается, улучшается в Open Source решениях</li>
+<li>HStack (Hadoop, HBase, HDFS) - доступный способ выйти на обработку больших данных</li>
+<li>HStack используется в больших компаниях - <a href="http://wiki.apache.org/hadoop/PoweredBy">http://wiki.apache.org/hadoop/PoweredBy</a></li>
+<li>для моделирования с использованием преимуществ другого хранения - нужен опыт, через практику.</li>
+</ul>
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse.2012/index.html">http://fluffypulser.ru/static/dbcourse.2012/index.html</a></li>
+        </ul>
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

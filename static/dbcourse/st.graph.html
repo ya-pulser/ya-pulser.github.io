@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="./files/jquery.js"></script>
+    <script src="./files/jquery.sparkline.js"></script>
+
+    <script type="text/javascript">
+
+        if (typeof String.prototype.startsWith != 'function') {
+            String.prototype.startsWith = function (str) {
+                return this.indexOf(str) == 0;
+            };
+        }
+
+        drawGraphs = function (items) {
+            $('.dynamicsparkline').sparkline(items, {height:200, width:200, lineWidth: 3, chartRangeMin: 0});
+            $('.dynamicbar').sparkline(items, {type: 'bar', barColor: 'green', height:100, barWidth:20, height: 200, chartRangeMin: 0});
+            var t = document.getElementById('plaindata');
+            t.innerHTML = '';
+            for (var i = 0; i < items.length; i++) {
+                var d = document.createElement('div');
+                d.innerHTML = '' + i + ' : ' + items[i];
+                t.appendChild(d);
+            }
+        };
+
+        getAllKeys = function() {
+            var st = window.localStorage;
+            var data = [];
+            for (var i = 0; i < st.length; i++)
+                data.push(st.key(i));
+            return data;
+        };
+
+        isData = function(key) {
+            return key && key.startsWith('data.');
+        };
+
+        loader = function(key) {
+            return window.localStorage.getItem(key);
+        };
+
+        loadData = function () {
+            return getAllKeys().filter(isData).sort().map(loader);
+        };
+
+        $(document).ready(function() {
+            drawGraphs(loadData());
+        });
+
+        report = function(val) {
+            var incomingRow = document.createElement('pre');
+            incomingRow.innerHTML = val;
+            document.getElementById("container").appendChild(incomingRow);
+        };
+
+        displayStorageEvent = function(e) {
+            var logged = "key:" + e.key + ", newValue:" + e.newValue + ", oldValue:" + e.oldValue +
+                    ", url:" + e.url + ", storageArea:" + e.storageArea;
+            report(logged);
+            this.drawGraphs(this.loadData());
+        };
+
+        // add listeners on storage events
+        window.addEventListener("storage", displayStorageEvent, true);
+
+    </script>
+
+</head>
+<body>
+<header>Посещаемость лекций</header>
+<table border="1">
+    <tr>
+        <th>Graph</th>
+        <th>Bar</th>
+        <th>Data</th>
+    </tr>
+    <tr>
+        <td><span class="dynamicsparkline">Loading..</span></td>
+        <td><span class="dynamicbar">Loading..</span></td>
+        <td><span id="plaindata">Loading..</span></td>
+    </tr>
+</table>
+<p>
+    <span id="container"></span>
+</p>
+</body>
+</html>

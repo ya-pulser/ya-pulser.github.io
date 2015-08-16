@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть девятая
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2012-11-26
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+    <h3>
+    Базы у вас под рукой ...<br/>
+    HTML5: WebStorage
+    </h3>
+    <p/>
+    <img style="width:300px" class="centered" src='files/HTML5_Logo_512.png'>
+    </p>
+
+</article>
+
+<article class="smaller">
+    <h3>До появления стандарта HTML5</h3>
+    <p>Пример: обычная, традиционная "корзина" на веб-сайте ... </p>
+    <p>Предыдущая версия HTML4.0 была сформирована в 1997-ом году.</p>
+    <p>Разработчику доступны два способа хранения информации:
+    <ul>
+    <li>база данных на сервере </li>
+    <li>набор COOKIE(короткий текст) на стороне клиента</li>
+    </ul>
+    </p>
+    <p>В случае базы данных на сервере: пользователь нажал на ссылку, внутри произошла запись в базу, результаты выдали пользователю.</p>
+    <p>Пользователь пришел в следующий раз, идем в базу, достаем данные, возвращаем пользователю.</p>
+    <p>Чем хорошо - с какой бы машины пользователь не зашел - база одна и на сервере, всегда одни и те же данные.</p>
+</article>
+
+<article class="smaller">
+<h3>http cookie</h3>
+    <p>В случае cookie - сервер возвращает пользовательскому браузеру http заголовок "set-cookie" - небольшую (4 килобайта) строку.</p>
+<pre class="nocode">
+ozon.ru:
+  Set-Cookie:rt=xxxxxxxxxxxxxxxxxxxxx; domain=ozon.ru; expires=Mon, 26-Nov-2012 08:34:03 GMT; path=/; HttpOnly
+</pre>
+    <p>Браузер у себя сохраняет ее на диск и прикладывает к последующим запросам на этот сервер.</p>
+
+<pre class="nocode">
+Request URL:http://vk.com/feed
+Request Method:GET
+Cookie:remixvkcom_done=1; remixlang=0; remixdt=0; remixsid=xxxxxxxxxxxxxxxxxxxxxxxxxx; remixflash=11.5.31; remixseenads=1
+Host:vk.com
+</pre>
+    <p>Максимальная длина cookie - 4 килобайта, 20 cookie на один домен. Описание - <a href="http://www.ietf.org/rfc/rfc2109.txt">rfc2109.txt</a></p>
+    <p/>
+    <p>Cookie выдается только на тот домен, с которого она была установлена (security).</p>
+    <p>Используется для авторизации, хранения настроек, <span class="blue">отслеживания пользователя</span>.</p>
+</article>
+
+<article class="smaller">
+<p>Активно ставят cookie рекламодатели: пример с сайта bn.ru: </p>
+<p/>
+<img style="width:721" src="files/bn-cookie-sample.png"/>
+<p/>
+<p>Как открыть девелоперскую консоль в Chrome: View / Developer / Developer Tools.</p>
+</article>
+
+<article class="smaller">
+    <h3>Сложности</h3>
+    <p class="green">База:</p>
+<p>А давайте попробуем "what-if": соберем две конфигурации (Intel vs CPU) и посмотрим что дешевле?</p>
+<p>База одна - только одна корзина ... даже в разных браузерах.</p>
+<p/>
+<p class="green">Cookie:</p>
+<p>Собрал дома "корзину", пришел на работу - а ее не видно .. cookie лежат в домашнем браузере.</p>
+<p/>
+<p>Кстати: посмотрел на windows 7 компьютере <br/>
+C:\Users\homeuser\Cookies - 9700 файликов с разными cookies</p>
+<p>Мы обязаны выдавать нужную cookie на каждый запрос к сайту.<br/> ... понятно, почему долго стартует IE ...</p>
+</article>
+
+<article class="smaller">
+    <h3>HTML5: Web Storage</h3>
+    <p>w3.org спецификация <a href="http://dev.w3.org/html5/webstorage/">Web Storage</a> - находится в разработке.</p>
+<p/>
+<p>Вводятся новые механизмы для хранения состояния:</p>
+<p><span class="blue">SessionStorage</span>:<br/>
+key-value хранилище внутри каждой страницы браузера<br/>
+(поддержка what-if сценариев).</p>
+<p/>
+<p><span class="blue">LocalStorage</span>:<br/>
+устойчивое key-value хранилище внутри браузера на уровне browser - host<br/>
+(кеш на стороне пользователя емкостью в мегабайты).</p>
+<p/>
+<p>Эти новые механизмы доступны на уровне javascript скриптов внутри браузеров.</p>
+</article>
+
+<article class="smallerx">
+<h3>Интерфейс Storage</h3>
+<pre class="nocode">interface Storage {
+  // количество пар в хранилище
+  readonly attribute unsigned long length;
+
+  // получить имя ключа в позиции index или null
+  DOMString? key(unsigned long index);
+
+  // получить значение по ключу key или null
+  getter DOMString getItem(DOMString key);
+  
+  // записать пару key - value
+  // <b><span class="green">Может кинуть QuotaExceededError </span></b>
+  setter creator void setItem(DOMString key, DOMString value);
+
+  // удалить значение по ключу key
+  deleter void removeItem(DOMString key);
+
+  // очищает всё хранилище
+  void clear();
+};</pre>
+</article>
+
+<article class="smaller">
+    <p>Спецификация переменных и доступа</p>
+<pre class="nocode">[NoInterfaceObject]
+interface WindowSessionStorage {
+  readonly attribute Storage sessionStorage;
+};
+Window implements WindowSessionStorage;
+
+[NoInterfaceObject]
+interface WindowLocalStorage {
+  readonly attribute Storage localStorage;
+};
+Window implements WindowLocalStorage;</pre>
+<p>Как использовать</p>
+<pre class="nocode">&lt;script&gt;
+    window.sessionStorage.setItem("session.1", "33");
+    window.localStorage.setItem("local.1", "38");
+&lt;/script&gt;</pre>
+</article>
+
+<article class="smaller">
+    <h3>Событие storage</h3>
+<p>Методы setItem / removeItem / clear порождают события, на которое клиентский код может подписаться.</p>
+<pre class="nocode">[Constructor(DOMString type, optional StorageEventInit eventInitDict)]
+interface StorageEvent : Event {
+  // изменившийся ключ
+  readonly attribute DOMString key;
+  // предыдущее значение
+  readonly attribute DOMString? oldValue;
+  // новое значение
+  readonly attribute DOMString? newValue;
+  // полный url источника события
+  readonly attribute DOMString url;
+  // какое хранилище - localStorage / sessionStorage
+  readonly attribute Storage? storageArea;
+};
+
+dictionary StorageEventInit : EventInit {
+  DOMString key;
+  DOMString? oldValue;
+  DOMString? newValue;
+  DOMString url;
+  Storage? storageArea;
+};</pre>
+</article>
+
+<!--<article class="smaller">
+<pre>var logged = "key:" + e.key + ", newValue:" + e.newValue
+    + ", oldValue:" + e.oldValue + ", url:" + e.url
+    + ", storageArea:" + e.storageArea;</pre>
+</article>-->
+
+<article class="smaller">
+<h3>Как этим пользоваться?</h3>
+<p>localStorage - устойчивое и переживет перезапуск браузера...</p>
+<p>... можем показать данные с того места, где браузер выключился ...</p>
+    <br/>
+    <p><span class="green">Пример: в хранилище посещаемость лекций, хочу видеть графики ... </span></p>
+    <p>Данные в виде ключ-значение: (data.X;N), где X - номер лекции, N - количество студентов</p>
+    <pre>
+        ("data.01", "33")
+        ("data.02", "34")
+        ("data.03", "27")
+        ...
+    </pre>
+</article>
+
+<article class="smaller">
+<p>Библиотечка полезных функций...</p>
+<pre class="nocode">
+// будем рисовать при помощи jquery
+&lt;script src="./files/jquery.js"&gt;&lt;/script&gt;
+&lt;script src="./files/jquery.sparkline.js"&gt;&lt;/script&gt;
+
+getAllKeys = function() { // все ключи в массив
+    var st = window.localStorage;
+    var data = [];
+    for (var i = 0; i < st.length; i++)
+        data.push(st.key(i));
+    return data;
+};
+
+isData = function(key) { // нас интересуют только data. ключи
+    return key && key.startsWith('data.');
+};
+
+loader = function(key) { // по ключу - значение
+    return window.localStorage.getItem(key);
+};
+
+loadData = function () {
+    // взять ключи, 
+    // отобрать нужные, 
+    // отсортировать, 
+    // загрузить значения
+    return getAllKeys().filter(isData).sort().map(loader);
+};</pre>
+</article>
+
+<article class="smaller">
+<pre class="nocode">
+// функция рисования графиков - на входе серия чисел
+drawGraphs = function (items) {
+  $('.dynamicsparkline').sparkline(items,
+     {height:200, width:200, lineWidth: 3, chartRangeMin: 0});
+
+  $('.dynamicbar').sparkline(items,
+     {type: 'bar', barColor: 'green', height:100, barWidth:10, chartRangeMin: 0});
+
+  // где отобразить график
+  var t = document.getElementById('plaindata');
+  t.innerHTML = ''; 
+  for (var i = 0; i < items.length; i++) {
+      var d = document.createElement('div');
+      d.innerHTML = '' + i + ': ' + items[i];
+      t.appendChild(d);
+  }
+};
+
+$(document).ready(function() {
+  drawGraphs(loadData());
+});
+
+&lt;table border="1"&gt;&lt;tr&gt;
+  &lt;td&gt;&lt;span class="dynamicsparkline"&gt;Loading..&lt;/span&gt;&lt;/td&gt;
+  &lt;td&gt;&lt;span class="dynamicbar"&gt;Loading..&lt;/span&gt;&lt;/td&gt;
+  &lt;td&gt;&lt;span id="plaindata"&gt;Loading..&lt;/span&gt;&lt;/td&gt;
+&lt;/tr&gt;&lt;/table&gt;
+</pre>
+</article>
+
+<!--
+<article class="smaller">
+<h4>Запустить пример ...</h4>
+<pre class="nocode">
+cd (folder with samples)
+
+// простой web server, который отдает файл из каталога
+// по http://localhost:8000/
+
+python -m SimpleHTTPServer</pre>
+
+<p>Потом открыть страницу <a href="http://localhost:8000/st.graph.html" target="_blank">примера</a></p>
+<p>... или открыть пример на <a href="http://fluffypulser.ru/static/dbcourse.2012/st.graph.html" target="_blank">fluffypulser.ru</a> ... </p>
+</article>
+-->
+
+<article class="smaller">
+<p><span class="green">... кстати, у нас же есть событие storage ...</span></p>
+<pre class="nocode">
+// создадим новую строку и подложим в container
+report = function(val) {
+    var incomingRow = document.createElement('pre');
+    incomingRow.innerHTML = val;
+    document.getElementById("container").appendChild(incomingRow);
+};
+
+// соберем сообщение, отобразим в таблицу, перерисуем графики
+displayStorageEvent = function(e) {
+    var logged = "key:" + e.key + ", newValue:" + e.newValue
+    + ", oldValue:" + e.oldValue + ", url:" + e.url
+    + ", storageArea:" + e.storageArea;
+
+    report(logged);
+    this.drawGraphs(this.loadData());
+};
+
+// зарегистрируем наш слушатель событий
+window.addEventListener("storage", displayStorageEvent, true);
+</pre>
+</article>
+
+<article class="smaller">
+<p>Источник событий</p>
+<pre class="nocode">
+// собираем данные с формы и кладем в хранилище
+newLine = function() {
+  var k = document.getElementById("key").value;
+  var v = document.getElementById("val").value;
+  window.localStorage.setItem(k, v);
+}
+
+// удаляем строку из хранилища 
+removeLine = function() {
+  var k = document.getElementById("key").value;
+  window.localStorage.removeItem(k);
+}
+
+// простая HTML форма для событий
+key: &lt;input type="text" name="key" id="key"/&gt;
+val: &lt;input type="text" name="val" id="val"/&gt;
+&lt;input type="button" value="new" onclick="newLine()"/&gt;
+&lt;input type="button" value="remove" onclick="removeLine()"/&gt;
+&lt;a href="st.insert.html"&gt;reload&lt;/a&gt;
+</pre>
+</article>
+
+<article class="smaller">
+<h4>Запустить пример ...</h4>
+<pre class="nocode">
+cd (folder with samples)
+
+// это простой web server, который отдает файл из каталога
+// по http://localhost:8000/
+python -m SimpleHTTPServer
+</pre>
+
+<p>Потом открыть страницу <a href="http://localhost:8000/st.graph.html" target="_blank">слушателя</a> (на <a href="./st.graph.html" target="_blank">fluffypulser.ru</a>) ... </p>
+<p>Потом открыть страницу <a href="http://localhost:8000/st.insert.html" target="_blank">источника</a> (на <a href="./st.insert.html" target="_blank">fluffypulser.ru</a>)</p>
+<p>И начать добавлять / удалять данные ...</p>
+<p><span class="smaller">Полезно: на странице "источник" открыть View / Developer / Developer Tools и там Resources / Local Storage ...</span></p>
+</article>
+
+<article class="smaller">
+    <h4>Что получилось?</h4>
+    <p>Данные "кешируются" у пользователя ...</p>
+    <p>Страница может отображать данные стартуя с кэша - еще до получения данных от сервера.</p>
+    <p>Обновления одной страницы разлетаются в несколько других страниц (Model-View-Controller).</p>
+    <h4>Что можно сделать?</h4>
+    <p>Пользовательский интерфейс отсмотра котировок - одно окно получает поток данных с сервера, а в других окнах - таблицы, графики етс.</p>
+</article>
+
+<article class="smaller">
+<h3>Кто этим пользуется?</h3>
+<img style="width:734" src="files/vk_localstorage_sample.png"/>
+<p>Список контактов - 225 человек - полное имя, краткое имя, url аватарки (fcFriends).
+Хранятся draft-ы всех сообщений, компу вы писали, но не отправили (im_draftКТО_КОМУ).
+Хранится список сообщений кому вы писали (posts_sent).</p>
+</article>
+
+<article class="smaller">
+<p>Как хранить JSON объект в storage?<br/>Сериализуй в строку и храни.</p>
+<pre class="nocode">
+var obj = ...;
+window.localStorage.setItem('myObj', JSON.stringify(obj));
+...
+var myObj = eval(window.localStorage.getItem('myObj'));
+
+Пример с vk.com
+
+{ "version":"1353914341_20869",
+  "list":
+  {
+    "15460_":[
+      "Дмитрий Качмар",
+      "http://cs5605.userapi.com/u15460/e_cc303041.jpg",
+      "Дмитрий","dc06a8cb15918e9fab6507e6c",2],
+
+    "3084297_":[
+      "Женя Смольникова",
+      "http://cs989.userapi.com/u3084297/e_363e3b7c.jpg",
+      "Женя","214938825f9accb164749ae8a",1],
+...
+</pre>
+</article>
+
+<article class="smaller">
+    <h4>sessionStorage</h4>
+    <p>Код и принципы работы - аналогичны.</p>
+    <p>Хранилище живет только в одной закладке браузера.</p>
+    <p>Пользователь может работать с разными наборами пар в разных окнах (what-if сценарии).</p>
+    <p>В пределах одной закладки пользователь может уходить и возвращаться на страницу.</p>
+    <p/>
+    <p>Пример: <a href="http://localhost:8000/st.session-insert.html" target="_blank">session storage</a> (на <a href="./st.session-insert.html" target="_blank">fluffypulser.ru</a>)</p>
+<pre class="smaller">
+if (typeof(window.localStorage) === "undefined") {
+  // "Your browser does not support HTML5 storage";
+</pre>
+</article>
+
+
+<article class="smaller">
+<p>Поддержка в каких браузерах?</p>
+<img class="centered" style="width:100%" src="files/HTML5-Storage.png"/>
+<div class="source"><a href="http://caniuse.com/#search=storage">"Can I use ... storage"</a> by <a href="http://caniuse.com/">caniuse.com</a></div>
+</article>
+
+<article class="smaller">
+    <h4>Key/Value - слишком просто, что дальше?</h4>
+    <p><a href="http://www.w3.org/TR/webdatabase/">w3.org: Web SQL Database</a> - набор APIs для клиент-сайд баз использую SQL...</p>
+<pre class="nocode">db.readTransaction(function (t) {
+  t.executeSql('SELECT title, author FROM docs WHERE id=?', [id],
+    function (t, data) {
+      report(data.rows[0].title, data.rows[0].author);
+    }
+  )}); </pre>
+<p>Спецификация <span class="red">"заброшена"</span> с комментарием:<br/>
+Все реализации используют Sqlite - этого мало для реализации стандарта ...</p>
+<hr/>
+    <p></p>
+    <p><a href="http://www.w3.org/TR/IndexedDB/">w3.org: Indexed Database API</a> - хранить много объектов локально - поиск по ключам, множественные значения для ключа, порядок обхода ключей ... NoSQL ...</p>
+    <p>Статьи на habrahabr.ru по тэгам <a href="http://habrahabr.ru/tag/IndexedDB/">IndexedDB</a>
+        и <a href="http://habrahabr.ru/tag/web%20sql%20database/">web sql database</a> ... </p>
+</article>
+
+<article>
+<p>
+<img class="centered" style="width: 100%" src="files/HTML5-WebSQLDatabase.png"/>
+</p>
+    <div class="source">by <a href="http://caniuse.com/#feat=sql-storage">caniuse.com - web sql database</a></div>
+</article>
+
+<article>
+<p>
+<img class="centered" style="width: 100%" src="files/HTML5-IndexedDB.png"/>
+</p>
+    <div class="source">by <a href="http://caniuse.com/#feat=indexeddb">caniuse.com - indexed db</a></div>
+</article>
+
+<article class="smaller">
+<h3>SQLite</h3>
+<p><a href="http://www.sqlite.org/">http://www.sqlite.org/</a></p>
+<p>SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine.</p>
+<p>SQLite is the most widely deployed SQL database engine in the world.</P>
+<hr/>
+<p>Для чего использовать?</p>
+<p>Полноценная база <span class="blue">без</span> сетевого доступа.</p>
+<p>Размеры - до террабайтов.</p>
+<p>Отличный "транспорт" - создали на большом компьютере, выложили один файл через http, скачали на Android - вот у нас и расписание занятий для всех.</p>
+<p>Формат файлов для использования в программах.</p>
+<p>Популярна в гаджетах - PDA, mp3 плееры етс.</p>
+<p>SQL база для использования в тестах.</p>
+</article>
+
+<article class="smaller">
+<p>Создадим руками базу.</p>
+<pre class="nocode">
+pulser-osx:sqlite pulser$ sqlite3 morning.db
+
+SQLite version 3.6.12
+Enter ".help" for instructions
+Enter SQL statements terminated with a ";"
+
+sqlite&gt; create table users (id integer primary key, name varchar(255));
+sqlite&gt; insert into users values (1, 'robin');
+sqlite&gt; insert into users values (2, 'batman');
+
+sqlite&gt; .exit
+
+pulser-osx:sqlite pulser$ ls -la
+-rw-r--r--   1 pulser  wheel  4096 26 ноя 14:30 morning.db
+
+sqlite&gt; create index idx_user_name on users(name);
+
+pulser-osx:sqlite pulser$ ls -la
+-rw-r--r--   1 pulser  wheel  6144 26 ноя 14:31 morning.db
+</pre>
+</article>
+
+
+<article class="smaller">
+<pre class="nocode">
+// <b>Получить отчет в CSV для загрузки в Excel? Легко.</b>
+osx:sqlite pulser$ sqlite3 --csv morning.db \
+    'select * from users order by 2 desc'
+1,robin
+2,batman
+
+// <b>Получить копию данных в текстовом формате?</b>
+osx:sqlite pulser$ sqlite3 morning.db '.dump'
+BEGIN TRANSACTION;
+CREATE TABLE users (id integer primary key, name varchar(255));
+INSERT INTO "users" VALUES(1,'robin');
+INSERT INTO "users" VALUES(2,'batman');
+CREATE INDEX idx_user_name on users(name);
+COMMIT;
+
+// <b>Добавить новую строку</b>
+osx:sqlite pulser$ sqlite3 morning.db \
+    'insert into users values (3, "batgirl")'
+
+// <b>Что получилось?</b>
+osx:sqlite pulser$ sqlite3 --csv morning.db \
+    'select * from users order by 2'
+3,batgirl
+2,batman
+1,robin
+</pre>
+</article>
+
+<article class="smaller">
+<p>А как из программы туда достучаться?</p>
+<pre class="nocode">
+#!/usr/bin/python
+import sqlite3 as lite
+import sys 
+con = None
+try:
+    con = lite.connect('morning.db')
+    cur = con.cursor()    
+    cur.execute('SELECT SQLITE_VERSION()')
+    data = cur.fetchone()
+    print "SQLite version: %s" % data    
+
+    for row in cur.execute('select * from users'):
+      print row 
+    
+except lite.Error, e:
+    print "Error %s:" % e.args[0]
+    sys.exit(1)
+finally:
+    if con:
+        con.close()
+
+osx:sqlite pulser$ ./morning.py 
+(1, u'robin')
+(2, u'batman')
+(3, u'batgirl')
+</pre>
+<div class="source"><a href="http://zetcode.com/db/sqlitepythontutorial/">SQLite Python tutorial</a></div>
+</article>
+
+<article class="smaller">
+    <h3>Литература</h3>
+    <p>Книга: Pro HTML5 Programming By Peter Lubbers, Brian Albers, and Frank Salim.<br/><a href="http://www.prohtml5.com/">site</a> /
+        <a href="http://www.ozon.ru/context/detail/id/5914165/">перевод</a> на ozon.ru / <a href="http://www.prohtml5.com/prohtml5.zip">примеры кода</a> </p>
+    <p>Html5Rocs: <a href="http://www.html5rocks.com/en/">site</a> / <a href="http://www.html5rocks.com/en/slides.html">slides</a></p>
+    <p>Habrahabr.ru: <a href="http://habrahabr.ru/search/?q=HTML5">поиск по HTML5</a></p>
+<hr/>
+    <p>w3.org спецификации:<br/>
+        <a href="http://dev.w3.org/html5/webstorage/">Web Storage</a>,<br/>
+        <a href="http://www.w3.org/TR/webdatabase/">Web SQL Database</a><br/>
+        и <a href="http://www.w3.org/TR/IndexedDB/">Indexed Database API</a></p>
+<hr/>
+<p>Учебник по SQL? <a href="http://www.w3schools.com/sql/default.asp">SQL Tutorial</a> by w3schools.com</p>
+</article>
+
+<article class="smaller">
+    <h3>Итого</h3>
+    <p>Базы начинались с один компьютер - одна база, 
+    потом разнесли на один сервер - N терминалов, 
+    потом сделали сервера базы - сервера бизнес-логики - терминалы,
+    потом добавился вебсервер и доступ из браузера...</p>
+    <p>... а теперь база (и SQL и Key-value) живет прямо в браузер.</p>
+<p>Использование локальной базы - дает новые возможности - перенос части данных и логики в клиента.</p>
+    <p>Но еще предстоит понять как правильно и с пользой это использовать.</p>
+    <p>Сложности - система будет требовать синхронизации структуры и данных тысяч клиентов с центральным хранилищем ...</p>
+
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse.2012/index.html">http://fluffypulser.ru/static/dbcourse.2012/index.html</a></li>
+        </ul>
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

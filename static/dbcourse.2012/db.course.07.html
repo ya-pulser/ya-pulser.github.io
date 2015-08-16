@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+    
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть седьмая
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2012-11-12
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+<h1>Подари мне Яндекс</h1>
+<p>поисковая система своими руками</p>
+<p>обратный (инвертированный индекс)</p>
+<p>Lucene</p>
+<p>HDFS</p>
+</article>
+
+
+<article class="smaller">
+<h3>Поисковик своими руками</h3>
+<p>Задача: есть коллекция текстовых документов</p>
+<p>Хочу искать по разным словам в них</p>
+<p>Что-то типа Google или Яндекса ...</p>
+<br/>
+<p><a href="http://www.seonews.ru/analytics/detail/6702.php">Папа, подари мне Яндекс</a> - кратко, по русски, "сказка". Самый доходчивый документ для входа в мир поисковика :) - морфология, как искать, эмуляция через SQL etc.</p>
+<span class="green">Меня через эту статью "вводили", когда я пришел в Яндекс и _ничего_ не понимал.</p>
+</article>
+
+<article class="smaller">
+<h3>Современная war-story...</h3>
+<p><a href="http://www.michaelnielsen.org/ddi/how-to-crawl-a-quarter-billion-webpages-in-40-hours/">How to crawl a quarter billion webpages in 40 hours</a><br/>by Michael Nielsen on August 10, 2012</p>
+<p><quote>More precisely, I crawled 250,113,669 pages for just under 580 dollars in 39 hours and 25 minutes, using 20 Amazon EC2 machine instances.</quote></p>
+<p>Зачем? Хотелось понять какие ресурсы нужны, дабы обойти заметную часть internet ...</p>
+<hr/>
+<p>Где взять железо? - Арендуем 20 серверов (<a href="http://aws.amazon.com/ec2/instance-types/">AWS: Extra Large</a>). (у них выше получилось колво урлов на доллар :) )</p>
+<p class="green">15Gb RAM / 4 core cpu / 1.6Tb hdd / Ubuntu - от 15 рублей в час за машину</p>
+<p>Где взять урлы? - Возьмем <a href="http://s3.amazonaws.com/alexa-static/top-1m.csv.zip">1 млн урлов</a> c Alexa.com (10Mb zip), а там по ссылкам с них на другие сайты.</p>
+<p><pre class="nocode">
+100009,ndonline.com.br
+100010,zeusnews.it
+100011,auditmedia.es
+100012,pavel-kolesov.ru
+100013,eyowo.com
+</pre></p>
+</article>
+
+<article class="smaller">
+<p>А программы? - А сам напишу на Python ...</p>
+<p>Разложим домены по серверам как server = hash(domain) % 20 .</p>
+<p>Внутри сервера разложим полученную группу хостов на 141 треда (подобрано экспериментально - загрузить CPU, так как в python io блокирующееся ).</p>
+<p>Для каждого домена заведем свой файлик из его урлов и дописываем в конец новые.</p>
+<p>В каждом файле отслеживаем позицию при помощи Redis</p>
+<p>Нельзя слишком часто дергать чужие сайты - заведем map(domain-&gt;lastVisitTime) и выжидаем между запросами</p>
+<p>Разработка итеративна - запустил, почитал ошибки, поправил, перепустил</p>
+<p>Данных много - решил качать только html и обрезать страницы по 200Кб (Google утверждает, что с картинками страница 300-450Кб)</p>
+<p>Складировал данные - просто на диск сервера (1.6Tb на каждом хосте)</p>
+<hr/>
+<p>$512 за 40 часов 20-ти серверов + $65 за 500Gb _исходящего_ траффика (http get запросы) = $580, 40 часов и 250 млн страниц</p>
+<p>Amazon не берет денег за "входящий" траффик - иначе бы много террабайт скачанных данных были бы заметны в расходах.</p>
+
+</article>
+
+<article class="smaller">
+<h3>Нужно от системы индексации:</h3>
+<p>
+* получить документы (скачать)<br/>
+* подготовить данные (почистить)<br/>
+* сделать базу документов (сохранить)<br/>
+* придумать как искать по ним (придумать поиск)<br/>
+* сделать обработку запросов пользователя (очистка, падежи етс)<br/>
+* отдать документы (веб сервер?)</p>
+</article>
+
+<article class="smaller">
+<h3>Получение информации</h3>
+<p>В случае web коллекция велика и связана ссылками.</p>
+<p>Пишем робота (web-паук / кравлер / crawler), который:<br/>
+- скачивает страницу<br/>
+- сохраняет страницу для обработки<br/>
+- получает из нее ссылки на другие страниц<br/>
+- идет за теми страницами ... и так по кругу<br/>
+</p>
+<p><a href="http://en.wikipedia.org/wiki/Web_crawler">wiki:Web crawler</a></p>
+<p>В случае локальной сети или предприятия - коллекцию нам могут выдать сразу</p>
+</article>
+
+<article class="smaller">
+<h3>Архитектура кравлера (c) wikipedia</h3>
+<br/>
+<img class='centered' style='width: 500px' src="files/wiki-webcrawler.png"/>
+</article>
+
+<article class="smaller">
+<h3>Данные кравлера</h3>
+<p><span class="green">веб-граф, метаинформация, архив документов</span>
+<ul>
+<li>список веб урлов, которые надо посетить, пополняемый кравлером</li>
+<li>даты, когда в прошлый раз посещал</li>
+<li>даты обновления документов (дабы не качать еще раз)</li>
+<li>данные, скачанных документов (тела документов)</li>
+</ul>
+</p>
+<p>Цитата из <a href="http://logic.pdmi.ras.ru/csclub/sites/default/files/slides/20110930_information%20retrieval_raskovalov_lecture1.pdf">Архитектура поискового кластер Яндекса Den Raskovalov</a>:
+10^12 урлов ( триллион / миллион миллионов ) / 10^10 документов ( 10 тысяч миллионов ).</p>
+<p>btw: <a href="http://ria.ru/science/20110923/442373056.html">РИА Новости 23.09.2011: Количество пользователей Facebook превысило 800 миллионов</a></p>
+<p>Как хранить архив?</p>
+<p>Можно в файловой системе, а можно в аналоге haystack - как byte streams, причем вместо уменьшенных thumbnails можно хранить "сниппеты". Доступ по id документа и типу "тела".</p>
+</article>
+
+<article class="smaller">
+<h3>Что такое сниппет</h3>
+<br/>
+<img class='centered' style='height: 500px' src="files/web-snippet.png"/>
+</article>
+
+<article class="smaller">
+<h3>А как же искать в 10^10 документов?</h3>
+<p>Ответ: инвертированный индекс</p>
+<p>Яндекс рекомендует:<br/>
+<img src="files/web-iir.jpg"/><img src="files/web-iir-ru.jpg"/><br/>
+<a href="http://nlp.stanford.edu/IR-book/">Introduction to Information Retrieval, Cambridge University Press. 2008.</a> курс лекций, на английском, в свободном доступе<br/>
+<a href="http://www.ozon.ru/context/detail/id/5497130/">Введение в информационный поиск</a> - перевод на русский, вычитанный в Яндексе. Ссылка на ozon.ru.<br/>
+<a href="http://download.yandex.ru/company/iworld-3.pdf">Как работают поисковые системы</a> Илья Сегалович, Яндекс</a></p>
+<p>Рекомендации лучших Яндексоидов ... :) </p>
+</article>
+
+<article class="smaller">
+<h3>Инвертированный индекс</h3>
+<p>Входящий документ разбиваем на токены (слова)</p>
+<p>Для каждого токена делаем список документов, в которых он встречается</p>
+<p>Список документов сортируем по возрастанию id документа.</p>
+<p>Поиск:<br/>
+* на входе слово "мармелад"<br/>
+* ищем токен "мармелад" в нашем списке токенов<br/>
+* берем с него список id документов<br/>
+* вот наш ответ - см. список</p>
+<p>Поиск мармелад и яблоко:<br/>
+* аналогично, но два списка<br/>
+* списки пересекаем (merge отсортированных последовательностей = o(n) ) </p>
+<pre>7:мармелад - { 107; 200; 320 ... }
+109:яблоко - { 68; 80; 107; 190; 202; 320 ...
+мармелад и яблоко - { 107; 320 ... }</pre>
+<p/>
+<p>А как хранить такой индекс?</p>
+</article>
+
+<article class="smaller">
+<h4>Данные для работы поиска</h4>
+<p>1. Словарь:</p>
+<p>Количество слов - в Oxford English Dictionary - 600 000 слов ... но там нет фамилий, имен, городов етс. =&gt; миллионы токенов =&gt; указатель int 2^32 может быть мало</p>
+<p>Само слово надо хранить - это еще 20? unicode символов</p>
+<p>(<a href="http://ru.wikipedia.org/wiki/%D0%A1%D0%B0%D0%BC%D0%BE%D0%B5_%D0%B4%D0%BB%D0%B8%D0%BD%D0%BD%D0%BE%D0%B5_%D1%81%D0%BB%D0%BE%D0%B2%D0%BE_%D1%80%D1%83%D1%81%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_%D1%8F%D0%B7%D1%8B%D0%BA%D0%B0">wiki: самое длинное слово</a>: энтерогематогепатогематопульмоэнтерального)
+<hr/>
+<p>2. Постинг лист (внутри Яндекса он называется "кишка" - ибо очень длинный :):</p>
+<p>идентификатор токена, потом ссылки на документы</p>
+<p>Количество документов - 10^10 =&gt; указатель long 2^64</p>
+<hr/>
+<p>Стемминг, лемминг, классы эквивалентности, морфология токенов (шел, шла, иду, идет, идем етс)</p>
+</article>
+
+<article class="smaller">
+<h3>Примеры из книги на основе коллекции Reuters-RTV1.</h3>
+<p>Словарь токенов как массив фиксированной длины - мнооого памяти, не понятно, сколько памяти на токен, зато бинарный поиск с прямым доступом быстрый, за o(ln n).</p>
+<p>Изначально размер посчитан как 400 000 токенов * ( 20 + 4 + 4 [term, termId, docId]) = 11.2 Мбайт ( 4 byte = 2^32 = 4 Гбайт)</p>
+<p>А если токены сложить в одну сплошную строку, а в массиве держать указатели на строку? Указатель на следующий токен == конец предыдущего токена?</p>
+<p><span class="green">{мармелад яблоко яблоневый яблочный} { 7:1, 109:9 ... }</span></p>
+<p>Размер падает до 400 000 * ( 4 + 4 + 3 + 8 [docId, termFreq, termBitId, avgBodyLength]) = 7.6 Мбайт (частота, указатель на постинг, ссылка на токен в строке, средняя длина токена)</p> 
+<p>А что если хранить блоками по 4 токена? (экономим указатели 4 байт)? Заменим ссылку на токен на ссылку на блок, а в блоке последовательный перебор: 
+<span class="green">{8мармелад 6яблоко 9яблоневый 8яблочный} { 7:1, 109:X, 120:X, 130:28, ... }</span> - поджали до 7.1 Мбайта</p>
+<p>"Фронтально" пакуем - начала слов повторяются, заменяем повторы на #, а * - отрезает повторяющуюся часть от неповторимой в первом слове:
+<span class="green">{8мармелад 6ябло *ко 5#невый 4#чный}</span> - получим 5.9 Мбайт.</p>
+</article>
+
+<article class="smaller">
+<h3>Постинг лист</h3>
+<p>Много длинных последовательностей чисел... причем большой разрядности - 2^64</p>
+<p>А если вместо абсолютной ссылки на документ держать относительную ?<br/> <span class="green">109:яблоко - <br/>{ 68; 80; 107; 190; 202; 320 ...</span><br/> vs<br/> <span class="blue">{ 68; 12; 27; 83; 19; 118 ...</span></p>
+<p>Токены по разному встречаются в документах - некоторые в каждом первом (the, is, а, и, но), некоторые очень очень редко - т.е. напрямую размер указателя все равно будет того же порядка - 2^64</p> 
+<p>Ответ: побитовое кодировние - коды разной длины для разных смещений - интересно и детально в книге</p>
+<p/>
+</article>
+
+<article class="smaller">
+<h3>Итого: пример из книги:</h3>
+<p>
+Исходная коллекция - статьи Reuters за год с 20.08.96 - 19.08.97:<br/>
+- 800 000 документов<br/>
+- 200 лексем в документе<br/>
+- 400 000 токенов <br/>
+- 960 Мбайт чистого текста<br/>
+- 3.6 Гбайт данных (xml/html/текст)<br/>
+- словарь из 11.2 Мбайт - 5.9 Мбайт<br/>
+- постинги - из 400 Мбайт в 101 Мбайт</p>
+
+<p><span class="green">Из 4 Гбайт разрозненных данных получили двух компонентную структуру для поиска (termIds + docIds) ... и она полностью влезает в небольшую память (128Мбайт)</p>
+</article>
+
+<article class="smaller">
+<h3>Инвертированный индекс - хранилище / база</h3>
+<p>Для работы поисковой системы нужна своеобразная база - инвертированный индекс.</p>
+<p>Для понимания характеристик - надо знать как оно устроено.</p>
+<p>Будет понятно сколько нужно памяти, какой скорости ожидать етс.</p>
+<p>Всегда компромиссы: в словаре <span class="blue">o(ln n)</span> при прямом дереве vs <span class="blue">o(ln(n/4)) + o(4)</span> при блоках по 4 токена</p> 
+<p>Сложно ... и интересно</p>
+<p>Если "своё" - понимаешь и тюнишь, если чужое, то пользуешь и надеешься ...</p>
+</article>
+
+<article class="smaller">
+<h3>Lucene</h3>
+<p>Готовая, общедоступная библиотека полнотекстового поиска на Java</p>
+<p><a href="http://lucene.apache.org/java/docs/index.html">http://lucene.apache.org/java/docs/index.html</a></p>
+<p>Используется: в 200+ проектах (<a href="http://wiki.apache.org/lucene-java/PoweredBy">PoweredBy</a>)</p>
+<p>... включая Twitter</p>
+
+</article>
+
+
+<article class="smaller">
+<h3>Как использовать?</h3>
+<p>Для меня: это <span class="green">внешний</span> индекс, позволяющий искать документы</p>
+<p>Документы могут храниться целиком внутри Lucene, но при больших объемах данных храним внутри Lucene немножко полей плюс указатели-пути до документов, а сами документы снаружи</p>
+<p>Алгоритм работы:<br/>
+* кладем документ в хранилище (haystack? :))<br/>
+* отдаем документ в Lucene на индексацию</p>
+<p>NB: у нас два процесса -&gt; распределенное хранение -&gt; "mind the CAP"</p>
+<!-- <p><img src="files/web-mind-the-gap.jpg"/></p> -->
+<p>Для хороших результатов - нужен будет свой стеммер для русского языка</p>
+<p>Стеммер - обрезальщик слов до корневой формы (например яблочный/яблочная -&gt; яблочн).</p>
+<p>Используется когда поиск не должен различать окончания</p>
+</article>
+
+<article class="smaller">
+<h3>Как выглядит поиск?</h3>
+<ul>
+<li>Пользователь приходит с запросом</li>
+<li>Идем в Lucene</li>
+<li>Получаем список id документов</li>
+<li>Идем с id в хранилище документов</li>
+<li>Отдаем пользователю список сниппетов с ссылками на документы</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Пример использования</h3>
+<p>LuceneTutorial.com: <a href="http://www.lucenetutorial.com/lucene-in-5-minutes.html">Lucene in 5 minutes</a></p>
+<pre class="nocode"><b>Запуск примера:</b>
+wget http://repo1.maven.org/maven2/org/apache/lucene
+
+  /lucene-core/4.0.0/lucene-core-4.0.0.jar
+  /lucene-analyzers-common/4.0.0/lucene-analyzers-common-4.0.0.jar
+  /lucene-queryparser/4.0.0/lucene-queryparser-4.0.0.jar
+
+mkdir lib
+mv *.jar lib/
+
+wget http://www.lucenetutorial.com/code/HelloLucene.java
+javac -cp ".:lib/*" HelloLucene.java
+java  -cp ".:lib/*" HelloLucene title=Lucene
+
+<b>Результаты:</b>
+Found 2 hits.
+1. 193398817    Lucene in Action
+2. 55320055Z    Lucene for Dummies
+
+76 строк включая все импорты ...</pre>
+</article>
+
+<article class="smaller">
+<h3>Строим индекс</h3>
+<pre class="nocode"><span class="green">// 1. create the index</span>
+Directory index = new RAMDirectory();
+IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_40, analyzer);
+IndexWriter w = new IndexWriter(index, config);
+
+addDoc(w, "Lucene in Action", "193398817");
+addDoc(w, "Lucene for Dummies", "55320055Z");
+addDoc(w, "Managing Gigabytes", "55063554A");
+addDoc(w, "The Art of Computer Science", "9900333X");
+
+w.close();
+
+private static void addDoc(IndexWriter w, 
+        String title, String isbn) throws IOException {
+    Document doc = new Document();
+
+    // simple field, splitted to tokens
+    doc.add(new TextField("title", title, Field.Store.YES));
+    
+    // use a string field for isbn because we don't want it tokenized
+    doc.add(new StringField("isbn", isbn, Field.Store.YES));
+
+    w.addDocument(doc); 
+} </pre>
+</article>
+
+<article class="smaller">
+<h3>Ищем информацию</h3>
+<pre class="nocode"><span class="green">// 2. query</span>
+String querystr = args.length &gt; 0 ? args[0] : "lucene";
+
+// the "title" arg specifies the default field to use
+// when no field is explicitly specified in the query.
+Query q = new QueryParser(Version.LUCENE_40, "title", analyzer).parse(querystr);
+
+<span class="green">// 3. search</span>
+IndexReader reader = DirectoryReader.open(index);
+IndexSearcher searcher = new IndexSearcher(reader);
+
+int hitsPerPage = 10;
+TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage, true);
+
+searcher.search(q, collector);
+ScoreDoc[] hits = collector.topDocs().scoreDocs;
+
+<span class="green">// 4. display results</span>
+System.out.println("Found " + hits.length + " hits.");
+for(int i=0;i&lt;hits.length;++i) {
+  Document d = searcher.doc(hits[i].doc);
+  System.out.println((i + 1) + ". " + d.get("isbn") + "\t" + d.get("title"));
+}
+
+// reader can only be closed when there is no need to access the documents any more.
+reader.close();
+</pre>
+</article>
+
+<article class="smaller">
+<h3><a href="http://en.wikipedia.org/wiki/Doug_Cutting">Douglas Reed Cutting</a></h3>
+<p>Работал в Excite, Apple, Xerox PARC, Yahoo, Cloudera...</p>
+<p>July 2009 - выбран в совет директоров Apache Software Foundation, September 2010 - предстедатель совета директоров.</p>
+<p><a href="http://lucene.sourceforge.net/publications.html">Патенты</a> - 9 штук с 1991-по 1996 года в области поисковых технологий.</p>
+<hr/>
+<p>Автор open-source проектов:</p>
+<p>Lucene - библиотека полнотекстового поиска</p>
+<p>Nutch - поисковый сервер, включающий кравлер и http сервер для результатов</p>
+<p>Hadoop - набор технологий для MapReduce вычислений</p>
+</article>
+
+<article class="smaller">
+<h3>HDFS - Hadoop File System</h3>
+<p><a href="http://hadoop.apache.org/docs/r0.16.4/hdfs_design.html">HDFS Architecture Guide</a></p>
+<p>Распределенная файловая система, устойчиво работающая поверх обычных компьютеров, изначально разработанная для Nutch.</p>
+<hr/>
+<h3>Требования и допущения</h3>
+<ul>
+<li>сотни нод в кластере, падение ноды - норма, а не событие</li>
+<li>throughput vs latency (производительность в час важнее, чем "быстрый ответ")</li>
+<li>много данных - гигабайты и террабайты - десятки миллионов файлов</li>
+<li>write-once-read-many сценарий</li>
+<li>переносимость по железу и операционным системам</li>
+</ul>
+<p>ps: очень похоже по архитектуре на Google File System (GFS). <a href="research.google.com/archive/gfs-sosp2003.pdf">research.google.com/archive/gfs-sosp2003.pdf</a><?p>
+</article>
+
+<article class="smaller">
+<img class='centered' style='height: 500px' src="files/hdfsarchitecture.png"/>
+</article>
+
+<article class="smaller">
+<h3>Архитектура</h3>
+<ul>
+<li>Master-slave (NameNode == master + N datanode = slaves)</li>
+<li>NameNode - мастер кластера, хранит метаинформацию в файлах</li>
+<li>Поддерживаются каталоги и подкаталоги файлов</li>
+<li>Блок данных - файлы хранятся блоками по 64Мb/128Mb</li>
+<li>DataNode - ничего не знает о файле, хранит только блоки по номерам</li>
+<li>Один и тот же блок - лежит на нескольких DataNode</li>
+<li>DataNode регулярно сообщает NameNode о своей живости (heartbeat) и о своих блоках (block report)</li>
+<li>"rack awareness" - распределение копий блоков в зависимости от rack (серверный шкаф) ... и отдача клиенту из ближайщего к нему</li>
+<li>Внутри свой протокол общения поверх TCP/IP</li>
+<li>Файлы write-once (нет апдейтов) и всегда эксклюзивно только один пишущий поток.</li> 
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Namenode</h3>
+<p>Хранит информацию имя файла - список блоков - адреса блоков в кластере</p>
+<p>Single point of failure</p>
+<p>Для надежности использует Snapshot, read ahead log (EditLog) etc</p>
+<p>Размер кластера, вернее количество файлов, определяется мощностью NameNode - теи, сколько мета-информации выдержит NameNode</p>
+<hr/>
+<h3>DataNode</h3>
+<p>Просто хранит понумерованные блоки по 64Mb</p>
+<p>Блоки складываются в каталоги, с оптимальной нарезкой на подкаталоги, дабы не было 10к файлов в каталоге</p>
+<p>Без метаинформации - блоки лишены смысла = мусор</p>
+</article>
+
+<article class="smaller">
+<h3>Запись данных</h3>
+<ul>
+<li>Клиент начинает писать данные в локальный файл</li>
+<li>по достижении 64Mb (размер блока) - просим NameNode назначить номер блока и N DataNode для этого блока</li>
+<li>данные начинают передавать на DataNode блоками по 4kb</li>
+<li>"остаток" файла - дописывается на DataNode</li>
+<li>клиент закрывает файл и соощает NameNode</li>
+<li>NameNode commit информацию о создании нового файла в свое хранилище</li>
+<li>если что-то сломалось до этого commit - файл утерян</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Репликация</h3>
+<ul>
+<li>NameNode назначает сразу N DataNode</li>
+<li>Клиент загружает блоками по 4кб в первую DataNode</li>
+<li>1-ая DataNode сразу начинает копировать данные во 2-ую DataNode</li>
+<li>2-ая в третью и так далее - данные "пропихиваются" датанодами самостоятельно</li>
+</ul>
+<p>Если на DataNode количество свободного места меньше порога - может быть принято решение о "миграции" блока на более свободную машину.</p>
+<p>При миграции будет обновлена информация в NameNode</p>
+</article>
+
+<article class="smaller">
+<h3>Получение данных</h3>
+<ul>
+<li>клиент соединяется с NameNode</li>
+<li>получает список блоков и для каждого блока - на каких нодах он лежит</li>
+<li>выбирает блок и datanode (ближайщую в терминах "я с ней в одном шкафу, в одном датацентре) и напрямую соединяетс с ней</li>
+<li>получаемый блок на ходу проверяется по контрольной сумме</li>
+<li>в случае сбоя - сразу переходим к следующей datanode</li>
+<li>клиент кеширует у себя мета информацию (блоки+датаноды)</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Поддерживаемые типы файлов</h3>
+<p><a href="http://shop.oreilly.com/product/0636920021773.do">Hadoop: The Definitive Guide</a>, глава 4 - Hadoop I/O</p>
+<p><a href="http://www.cloudera.com/blog/2011/01/hadoop-io-sequence-map-set-array-bloommap-files/">Hadoop I/O: Sequence, Map, Set, Array, BloomMap Files</a></p>
+<ul>
+<li>подсчет контрольных сумм (512 байт, .crc файл)</li>
+<li>сжатие - блочное, алгоритмы, "splittable" etc, (.deflate, .gzip, .zip, .bzip2, .lzo)</li>
+<li>сериализация данных (interface Writable) : compact, fast, extensible, interoperable</li>
+</ul>
+<p>Split компрессия - у нас файл на 1Гб, блоки по 64Мб. Если можем split, то берем 10-ый блок и сразу с ним работаем. Если не поддерживается split - придется брать блоки с 1-го и последовательно распаковывать до нужного.</p>
+<p>Можно свою сериализацию - хоть Thrift</p>
+</article>
+
+<article class="smaller">
+<h3>SequenceFile</h3>
+<p>последовательность ключ-значение</p>
+<p>произвольный порядок ключей</p>
+<p>запись - writer.put(key, value);</p>
+<p>чтение - full scan при помощи next()</p>
+<p>или sync(position) - система встанет в заданную позицию и от нее будет искать точки синхронизации</p>
+<p>При создании в файл можно вложить пары строк metaKey-&gt;metaValue, для описания файла (metainfo)</p>
+<hr/>
+<p>SequenceFile используется как строительный блок для всех других форматов.</p>
+</article>
+
+<article class="smaller">
+<img class='centered' style='width: 700px' src="files/hdfs-seq-plain.png"/>
+<img class='centered' style='width: 700px' src="files/hdfs-seq-comp.png"/>
+<div class="source">Взято из книги Hadoop: The Definitive Guide</div>
+</article>
+
+<article class="smaller">
+<h3>Format sequence файла</h3>
+<pre class="nocode">Header:
+  4 bytes: SEQ +  byte версии
+  Text - Key class name
+  Text - Value class name
+  Boolean - is compressed
+  Boolean - is block compressed
+  16 bytes - sync метка (генерится на каждый файл своя)
+
+Record:
+  int - key length + value length
+  int - key length
+  bytes[] key
+  bytes[] value
+
+Block:
+  int - колво записей в блоке
+  int - длина ключей
+  bytes[] - ключи
+  int - длина блока значений
+  bytes[] - значения
+
+Sync: (sync ставится раз в Н записей (1% от данных, не более))
+  16 bytes
+</pre>
+</article>
+
+<article class="smaller">
+<h3>MapFile</h3>
+<p>Данные должны быть отсортированы по возрастанию ключа - вставка ключа не по порядку = Exception</p>
+<p>Состоит из двух sequence файлов:<br/>
+- /data - обычный seq. файл key-значение<br/>
+- /index - (key:long - позиция в файле /data)</p>
+<p>Рядом с файлом данных - новый файл индекса</p>
+<p>Можно lookup (подглядывать) по ключу</p>
+<p><img src="files/index-data-bloom.png" width="400"/></p>
+</article>
+
+<article class="smaller">
+<h3>Чтение из MapFile</h3>
+<p>Кстати - по умолчанию только каждый 128-ой ключ выкладывается в index файл - нельзя даже посчитать колво ключей</p>
+<p>Если индекс файл очень большой - при работе можно брать только каждый 2-ой (256 записей) или 4-ый (1024 записи) ключ из индекса</p>
+<ul>
+<li>reader.get(new IntWritable(496), value);</li>
+<li>читаем индекс в память, binary search позиции в индекс файле перед 496-ой записью - получаем position в файле данных по ключу X</li>
+<li>позиционируемся в данные sync(позиция X)</li>
+<li>читаем и пропускаем записи, пока не встретим с ключом 496</li>
+<li>Итого: один file seek + до 128-ми прочитанных записей</li>
+</ul>
+<hr/>
+<p><b>SetFile</b> - сделан поверх MapFile</p>
+<p>есть операция append(key), значение всегда null</p>
+<p><b>ArrayFile</b> - сделан поверх MapFile</p>
+<p>есть операция append(value), а ключ назначает врайтер как count++ </p>
+</article>
+<article class="smaller">
+<p><b>BloomMapFile</b> - в момент закрытия файла на запись рядом пишем файл /bloom, в который складываем Bloom filter ключей, что есть в файле.</p>
+<hr/>
+<p><a href="http://ru.wikipedia.org/wiki/%D0%A4%D0%B8%D0%BB%D1%8C%D1%82%D1%80_%D0%91%D0%BB%D1%83%D0%BC%D0%B0">Bloom filter</a> - заводим большую битовую последовательностьи (4096 бит или больше).</p>
+<p>Когда кладем - для каждого key cчитаем значения для разных N hash-ей h1..hn, и каждую побитно OR записываем в буфер (выставляем 1-чки)</p>
+<p>Когда проверяем - считаем h1..hn и проверяем что все 1 в hx не содержат 0 в буфере</p>
+<p><img src="files/649px-Bloom_filter.svg.png" width="450"/></p>
+<p>Получается структура, позволяющая быстро дать ответ "нет значения" и с некоторой вероятностью обмануть "есть значение". Вероятность ошибки определяется качеством и количеством hash функций и размером bloom фильтра. Можно поднять до миллионов бит, если надо.</p>
+</article>
+
+<article class="smaller">
+<h3>Итого:</h3>
+<ul>
+  <li>Поиск - это <span class="green">просто</span>, <span class="blue">сложно</span>, <span class="red">интересно</span>.</li> 
+<li>Ядро поисковой машины - обратный индекс + куча математики поверх числовых сетов</li>
+<li>Поисковый индекс - специализированная, многокомпонентная, но доступная для понимания база данных</li>
+<li>От оптимальности этой базы зависит скорость работы всей системы и всего сервиса</li>
+<li>Есть готовые доступные проверенные решения:<br/>
+- Lucene - библиотека индекса<br/>
+- Nutch - всё в одном для поиска<br/>
+- HDFS - надежная распределенная файловая система
+</li>
+</ul>
+
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse.2012/index.html">http://fluffypulser.ru/static/dbcourse.2012/index.html</a></li>
+        </ul>
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+    
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть шестая
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2011-10-26
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+<h1>Хранение картинок</h1>
+<p>Строим фотохостинг</p>
+</article>
+
+<article>
+<h3>Постановка задачи</h3>
+<p>Поймал щуку - хочу показать друзьям в другом городе</p>
+</article>
+
+<article>
+<h3>20 лет тому назад</h3>
+<ul>
+<li>ставим свой ftp сервер</li>
+<li>даем доступ на загрузку</li>
+<li>пользователь заходит на сервер</li>
+<li>командой put моя-фотка.gif заливает картинку</li>
+<li>формирует путь ftp://хостинг.ру/upload/моя-фотка.gif</li>
+<li>отправляет знакомому</li>
+<li>тот соединяется с сервером и скачивает картинку</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Правдивая история (?)</h3>
+<p><a href="http://www.google.ru/search?gcx=w&ie=UTF-8&q=%D1%81%D0%B0%D0%BC%D0%B0%D1%8F+%D0%BF%D0%B5%D1%80%D0%B2%D0%B0%D1%8F+%D0%BA%D0%B0%D1%80%D1%82%D0%B8%D0%BD%D0%BA%D0%B0+%D0%B2+%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82%D0%B5">google:самая первая картинка в интернете</a><br/>-&gt;<a href="http://en.wikipedia.org/wiki/First_image_on_the_Web#History">wikipedia:First_image_on_the_Web</a>
+</p>
+<p> Back in 1992, after their show at the CERN Hardronic Festival, my colleague Tim Berners-Lee asked me for a few scanned photos of "the CERN girls" to publish them on some sort of information system he had just invented, called the "World Wide Web".</p>
+<p>I had only a vague idea of what that was, but I scanned some photos on my Mac and FTPed them to Tim's now famous "info.cern.ch".</p>
+<p>How was I to know that I was passing an historical milestone, as the one above was the first picture ever to be clicked on in a web browser!</p>
+
+<p/>
+<p>В 1992-ом году, после шоу CERN Hardronic Festival, мой коллега Тим Бернерс Ли попросил у меня пару фоток "тех девчонок из ЦЕРНа", дабы опубликовать их в свежеизобретенной им системе под названием "Всемирная паутина".</p>
+<p>Я не очень понял что он хотел, но отсканировал несколько фоток на моем Маке и выложил их на ныне известный ftp "info.cern.ch".</p>
+<p>Откуда мне было знать, что так получилась первая в мире фотка, кликнутая в браузере!</p>
+</article>
+
+<article class="smaller">
+<img class='centered' style='height: 500px' src="files/Les_Horribles_Cernettes_in_1992.jpg"/>
+<p>Les Horribles Cernettes ("The Horrible CERN Girls") is an all-female parody pop group, self-labelled "the one and only High Energy Rock Band", founded by employees of CERN which performs at CERN and other HEP related events. The initials of their name, LHC, are the same as those of the Large Hadron Collider which was later built at CERN.</p>
+</article>
+
+<article>
+<h3>Плюсы / минусы?</h3>
+<ul>
+<li>очень продвинутые пользователи (ядерные физики :) )</li>
+<li>пользователей немного</li>
+<li>картинки небольшие</li>
+<li>управлять коллекцией можно, но долго (mkdir / cd / etc)</li>
+</ul>
+<p>Вопрос: а если надо 100 картинок?<br/>Ответ: сложу в .zip, заберут распакуют, посмотрят.</p>
+</article>
+
+<article>
+<h3>15 лет назад: сделаем свой http / html сервис</h3>
+<ul>
+<li>появились браузеры (поддержка img и form в Mosaic 1993 год (<a href="http://www.w3.org/People/Raggett/book4/ch02.html">A history of HTML</a>))</li>
+<li>работают с http / html</li>
+<li>идея: делаем html форму и грузим на сервер через нее</li>
+<li>сервер возвращает путь, мы его уже дальше используем</li>
+</ul>
+<h3>Плюсы:</h3>
+<p>можно сделать красиво<br/>
+более простые пользователи<br/>
+больше пользователей<br/>
+</p>
+</article>
+
+<article>
+<h3>Подробнее</h3>
+<ul>
+<li>Пользователь получил по http форму</li>
+<li>В форме есть &lt;input type="file" name="picture"/&gt;</li>
+<li><input type="file" name="picture"/></li>
+<li>выбирает файл моя-фотка.jpg, нажимает отправить</li>
+<li>часики на экране</li>
+<li>сообщение: вы можете получить файл по адресу<br/>
+http://хостинг.ру/images/моя-фотка.jpg</li>
+</ul>
+</article>
+
+<article>
+<h3>Что происходит на сервере?</h3>
+<ul>
+<li>получаем запрос</li>
+<li>получаем из заголовков название файла</li>
+<li>получаем из тела запроса байты</li>
+<li>делаем файл на диске</li>
+<li>кладем туда байты</li>
+<li>закрываем файл</li>
+<li>возвращаем полный путь пользователю</li>
+</ul>
+</article>
+
+<article>
+<h3>Что на сервере по get?</h3>
+<ul>
+<li>получили из запроса имя файла</li>
+<li>поискали файл по пути {prefix}/имя файла (/data/images/моя-фотка.jpg)</li>
+<li>открыли файл, загрузили байты</li>
+<li>опционально: выставили content-type image/jpeg</li>
+<li>отправили байты пользователю</li>
+<li>закрыли файл и соединение</li>
+</ul>
+</article>
+
+<article>
+<h3>Плюсы / минусы?</h3>
+<ul>
+<li>html форма - это просто и доступно = много пользователей</li>
+<li>не требует работы от администратора</li>
+<li>технически понятно, просто, ?надежно? (бекапы)</li>
+</ul>
+<p>Растет количество файлов и пользователей, объем данных, что делать?</p>
+<ul>
+<li>файловая система тормозит когда много файлов в каталоге</li>
+<li>например, скорость бекапа - много маленьких файлов - долго</li>
+<li>падает скорость поиска файла - fat32 "умирает" когда в каталоге 10к+ файлов</li>
+</ul>
+</article>
+
+<article>
+<h3>Дополнительные требования</h3>
+<p>Для быстрой отрисовки html страниц на клиенте нужна мета информация</p>
+<p>Размеры картинки для<br/>&lt;img src="..." height="480" width="320"/&gt;.</p>
+<p>Так же текстовое описание для alt="..." атрибутов.</p>
+<p>Это особенность клиента-браузера - страница показывается до того, как подгружены картинки, если известны все размеры. Пока картинка грузится - виден альтернативный текст.</p>
+<p><span class="green">Кстати</span>: клиенты хотят не только картинки, но и разные размеры - иконка 32х32, 128х128, 640х480 етс - 4-5 размеров.</p>
+<p><b>Взрыв</b> количества картинок в системе</p>
+</article>
+
+<article>
+<h3>Варианты решения</h3>
+<p>Много файлов в каталоге - сделаем дерево.</p>
+<p>По пользователю - /data/иванов/, /data/петров/ etc.</p>
+<p>Плохо - у пользователей разное колво картинок, у самых активных (полезных) - тормозит.</p>
+<p></p>
+<p>Сделаем hash названия+пути и разложим в каталоги /data/0000/0001, /data/0000/0002 etc.</p>
+<p>Проблема: Очень обидно, когда накладываются hash.<br/>
+Ответ: будем назначать id картинке сами (20000001.jpg) и класть в каталоги в обратном порядке: /data/01/00/00/20.jpg</p>
+</article>
+
+<article class="smaller">
+<h3>Хранить meta информацию</h3>
+<p>1. читаем информацию дважды - для html страницы и когда забирают картинку<br/>Плохо - мета информацию надо парсить и она в разных местах у разных форматов.</p>
+<p>2. кладем рядом .txt файлик с описанием<br/>Уже лучше - файл проще и меньше, но все равно 2 раза ходить в fs</p>
+<p>3. делаем index (index.txt) - по 1 файлу в каталоге<br/>Заметно лучше - меньше дерганий диска, быстрее.</p>
+<p>Идеально - файловая система с доп. атрибутами файла, но ...</p>
+<p>Почему не сделать один файл на весь /data?</p>
+<p>Он постоянно меняется при добавлении, падает скорость добавления данных из-за блокировок.</p>
+<p>Опять же растет объем файла (плавно приближается по размеру к самой FS таблице) - долго просматривать.</p>
+</article>
+
+<article>
+<h3>Много пользователей = много отдающих серверов<br/> -&gt; нужна репликация</h3>
+<p>Репликация файловой системы - просто копируем каталоги с одного сервера на другой</p>
+<p>Например - rsync раз в 5 минут смотрит новые файлы и несет на другой сервер</p>
+<p>Master-slave и так далее ...</p>
+<p>Что хорошо - каталог (даже с индекс файлами) самодостаточен и легко копируется.</p>
+</article>
+
+<article>
+<h3>Добавим базу данных... </h3>
+<pre><code class="lang-sql">create table images ( 
+id number primary key, width number, height number, alt varchar(200));
+
+create table keywords (id number primary key, value varchar(200));
+
+create table keyword_image (keyword_id number, image_id number);</code></pre>
+<p>Плюсы - база сама разберется с блокировками, с доступом по сети с нескольких серверов etc.</p>
+<p>За счет keywords - есть возможность сделать поиск по тэгам (животное, машинки етс).</p>
+<p><span class="green">Идеально</span>, но ... </p>
+</article>
+
+<article class="smaller">
+<h3>База же универсальна и мощна - сложим картинки в нее!</h3>
+<p>У нас же мощный DB сервер и проверенная временем база Oracle / MySQL...</p>
+<p>Там есть:<br/>
+BLOB - бинарный объект с макс. размером 4Gb * размер блока (8kb)<br/>
+BFILE - ссылка на файл, хранимый на сервере базы - макс. размер 4Gb<br/>
+</p>
+<pre><code>create table image_body (id number primary key, body blob);</code></pre>
+<p>плюсы:<br/>
+все в одном месте - понятнее<br/>
+один мощный сервер, а не куча файловых складов<br/>
+нет вопросов consistency (что записали, то сразу всем видно) и т.д.<br/>
+Backup средствами базы<br/>
+Master slave средствами базы
+</p>
+<p>минусы:<br/>
+решение монолитно и быстро упирается в мощность сервера - ака тупик :-( </p>
+</article>
+
+<article>
+<h3>polyglot persistence</h3>
+<p>polyglot = полиглот = смешение языков</p>
+<p>persistence = выносливость, живучесть, стойкость</p>
+<p/>
+<p>Комбинируйте из разных баз (хранилищ) системы, которые хороши для ваших потребностей.</p>
+<p>Монолитность - в прошлом на текущий момент.</p>
+</article>
+
+<article class="smaller">
+<h3>О каком количестве картинок идет речь?</h3>
+<p><a href="http://www.flickr.com/">http://www.flickr.com/</a></p>
+<p><span class="green">2007</span>-ой год, Архитектура Фликера (<a href="http://highscalability.com/flickr-architecture">Flickr Architecture</a> (<a href="http://www.insight-it.ru/masshtabiruemost/arkhitektura-flickr/">перевод by Insight IT</a>)):</p>
+<p>Статистика</p>
+<ul>
+<li>Более четырех миллиардов запросов в день</li>
+<li>Примерно 35 миллионов фотографий в кэше Squid</li>
+<li>Около двух миллионов фотографий в оперативной памяти Squid</li>
+<li>Всего приблизительно 470 миллионов изображений, каждое представлено в 4 или 5 размерах</li>
+<li>38 тысяч запросов в секунду к memcached (12 миллионов объектов)</li>
+<li>2 петабайта дискового пространства</li>
+<li>Более 400000 фотографий добавляются ежедневно</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Архитектура Фликера</h3>
+<p>Всё кроме фоток - а базе данных</p>
+<p>Статичные данные - на отдельных серверах</p>
+<p>Клиенту выдается список серверов и клиент в случае ошибки сразу retry к следующему серверу</p>
+<p>Активные связки master-master для MySQL, так как master-slave слишком медленно</p>
+<p>Каждая страница - 27-35 SQL запросов, включая select count(*) для счетчиков</p>
+<p>Шарды по 400К+ пользователей</p>
+<p>Сервера 16Gb RAM / 120Gb данных / RedHat Linux</p>
+<p><span class="green">12Tb</span> данных о пользователях (это без самих фоток)</p>
+<p>etc ...</p>
+<p>И это <span class="green">2007</span> год</p>
+</article>
+
+<article>
+<h3>Facebook - хранилище фоток</h3>
+<p><a href="http://www.facebook.com/note.php?note_id=76191543919">Needle in a haystack: efficient storage of billions of photos</a> - Иголка в стоге сена: эффективное хранение миллиардов фоток</p>
+<p><span class="green">Май 2009</span>
+<p>Статистика<br/>
+* 15+ млрд фоток<br/>
+* 4 размера на каждую фотку = 60+ млрд фоток<br/>
+* 1.5 Pb данных<br/> 
+* 220 млн новых фоток в неделю = 25Tb данных в неделю<br/>
+* в пике отдаем 550 000 фоток в секунду<br/>
+</p>
+</article>
+
+<article>
+<h3>Архитектура до этого</h3>
+<p>Сервера загрузки - получают фотку, ресайзят, складывают в NFS (сетевая файловая система)</p>
+<p>Сервера отдачи - получают по http запрос, ищут в NFS файл, отдают</p>
+<p>Сервера NFS - ( commercial storage appliance ) - покупные специализированные сервера для хранения файлов</p>
+<p>Каждое фото - отдельный файл - очень много оверхеда и метаданных для NFS - bottleneck</p>
+<p>Два слоя кеширования поверх NFS</p>
+<p>Все равно море I/O операций на каждую фото</p>
+</article>
+
+<article class="smaller">
+<h3>Haystack</h3>
+<h4>Storage</h4>
+<ul>
+<li>2 x quad CPU</li>
+<li>16-32Gb RAM</li>
+<li>hardware RAID на 512Mb памяти</li>
+<li>12+ 1Tb SATA дисков / 10+ Tb данных на сервер</li>
+<li>RAID-6 (2 диска с контрольными суммами, работает даже при двух выпавших дисках)</li>
+<li>чтение - random, поэтому память в RAID контроллере - под запись</li>
+</ul>
+<h4>Файловая система</h4>
+<ul>
+<li>XFS - лучше работа с inode + нет фрагментации</li>
+<li>одна FS на все диски</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Haystack Object Store</h3>
+<p>файл данных - 8kb супер блок и только добавляемые данные</p>
+<img class='centered' style='height: 270px' src="files/fb_001.jpg"/>
+<!-- p>Магические числа нужны дабы найти иголку в случае поломки</p -->
+<img class='centered' style='height: 270px' src="files/fb_002.jpg"/>
+</article>
+
+<article class="smaller">
+<p>файл индекса</p>
+<img class='centered' style='width: 584px' src="files/fb_003.jpg"/>
+<img class='centered' style='width: 584px' src="files/fb_004.jpg"/>
+<p>Просто меньше по размеру ( &lt; 1% ), в том же порядке, может быть восстановлен по файлу данных</p>
+<p>Сортировка и скорость - на стороне клиента, сами сортируйте индекс у себя</p>
+</article>
+
+<article class="smaller">
+<p><b>Запись</b></p>
+<p>Добавляем в данные, fsync, добавляем в индекс, изредка скидываем индекс на диск (ибо его можно восстановить)</p>
+<p>Модификации нет - только добавляем, чем больше offset в файле, тем более свежие данные</p>
+<p><b>Чтение</b></p>
+<p>На входе сложный ключ (offset, key, alt key, cookie, datasize (взятые из index файла)).</p>
+<p>Отдаем только если key + alt key + cookie совпали</p>
+<p><b>Удаление</b></p>
+<p>Просто проставляем флажок в нужном месте, индекс не обновляем совсем - пусть ссылается на удаленное.</p>
+<p>Освобождаем место - только при перестроении стога</p>
+</article>
+
+<article class="smaller">
+<h3>Фото сервер</h3>
+<p>обрабатывает http запросы</p>
+<p>На старте берет в память индексы - нужны минимальные записи:<br/>
+* 64 bit назначенный ключ<br/>
+* сдвиг 1-ой уменьшенной копии + размер<br/>
+* сдвиг 2-ой уменьшенной копии + размер<br/>
+* сдвиг 3-ей уменьшенной копии + размер<br/>
+* сдвиг 4-ой уменьшенной копии + размер</p>
+<p><b>Добавление</b><br/>
+назначаем ключ, отправляем в стог<br/>
+обновляем индекс в памяти, оставляя с большим offset</p>
+<p><b>Чтение</b><br/>
+По урлу (http://a5.sphotos.ak.fbcdn.net/hphotos-ak-snc7/305268_2286336594015_1116922192_32407711_680601277_n.jpg) получаем:<br/>
+* id стога<br/>
+* ключ фото<br/>
+* размер<br/>
+* cookie (нужен, дабы нельзя было _перебрать_ все существующие фотки)</p>
+<p>Идем в стог, получаем данные. Если получаем "удалено", обновляем индекс у себя (проставляем offset = 0)</p>
+</article>
+
+<article class="smaller">
+<p><b>Удаление</b><br/>
+команда в стог на удаление, обновляем у себя индекс</p>
+<p><b>Сжатие</b><br/>
+на ходу можем "сжимать" стог - делается новая копия данных, выкидывая удаленные и старые копии, подкладывается на место, обновляются индексы</p>
+<p><b>HTTP сервера</b><br/>
+учитывая что скорость определяется I/O сети, а не вычислительной мощностью - скорость HTTP сервера малозначима</p>
+</article>
+
+<article>
+<h3>Haystack: summary</h3>
+<p>Получилась масштабируемая система хранения бинарных объектов.</p>
+<p>Используется не только для фото, но и для хранения email attach-ей в Facebook Message System</p>
+<p>Уменьшен на порядки overhead работы с файлами - пара файлов на 100 000+ фоток</p>
+<p>Маленькие индексы - влезают в память - не нужно I/O на метаданные</p>
+<p>Получение данных - минимальное количество I/O</p>
+</article>
+
+<article>
+<h3>Итого:</h3>
+<ul>
+<li>фотохостинг - сложный, составной процесс</li>
+<li>начинался с простых решений</li>
+<li>появлялись монолитные монстры</li>
+<li>опять разбивались - разные данные храним по разному</li>
+<li>полиглот хранение - микс SQL (данные о пользователях) / NoSQL (для файлов) хорошо и правильно, но помни про CAP (flickr)</li>
+<li>каждую часть хранения можно отдельно оптимизировать (haystack)</li>
+</ul>
+</article>
+
+      <article>
+        <h3>Вопросы?</h3>
+        <ul>
+          <li>Илья Тетерин</li>
+          <li><a href="http://twitter.com/#!/ya_pulser">@ya_pulser</a></li>
+          <li>ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse/index.html">http://fluffypulser.ru/static/dbcourse/index.html</a></li>
+          <!--<li style="margin-top: 2em">Btw, shout-outs for golang.org and camlistore.org! &lt;3</li>-->
+        </ul>
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Базы данных: введение</title>
+
+    <meta charset="utf-8">
+    <script src="./files/slides.js"></script>
+  <style>
+
+    /* Your individual styles here, or just use inline styles if that’s what you want. */
+
+    .smaller {
+    font-size: 80%;
+    }
+    
+    ul li ul {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+    }
+    ul li ul li {
+      margin-top: 1em;
+      font-size: 80%;
+    }
+    ul li ul.dense li {
+      margin-top: 0em;
+      margin-bottom: 0em;
+      font-size: 80%;
+    }
+    h1.center {
+      text-align: center;
+      font-style: italic;
+    }
+  </style><meta name="viewport" content="width=580,height=400"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-regular">
+      
+      <!-- Your slides (<article>s) go here. Delete or comment out the slides below. -->
+
+      <article class="current">
+        <h1>
+          Базы данных: введение, часть третья
+        </h1>
+        <p>
+          Илья Тетерин
+          <br>
+          2012-10-08
+        </p>
+        <p><i><small style="color: #ccc">(use arrow keys or PgUp/PgDown to move slides)</small></i></p>
+      </article>
+
+<article>
+<q>Маленькая сказка</q>
+</article>
+
+<article>
+<h3>Идея ... !</h3>
+<ul class="build">
+<li>Идея: сервис - <span class="red">Позвони, напомню!</span> — Никогда не забывайте, даже если вы не помните, что забыли!</li>
+
+<li>моя записная книжка да мой телефон как API</li>
+<li>Первый звонок, первый клиент</li>
+<li>Я Джон, хочу потом посмотреть "Начало" ...</li>
+<li> ... время ... новый звонок ...</li>
+<li>Я Джон, напоминалки есть? <em class="blue">Ага, вы хотели "Начало" посмотреть.</em> О, спасибо!</li>
+<li>... народу нравится, 3 рубля за обращение - дешево! ...</li>
+<li>Растём ...</li>
+<li>... даже скорее так: <span class="red">РАСТЁМ!</span> :)</li>
+</ul>
+</article>
+
+<article>
+<h3>Первые траблы</h3>
+<ul class="build">
+  <li>растем ... но народ уже в очереди висит ... <em class="blue">не справляюсь!</em></li>
+  <li>... вчера болел - вообще никого не обслужил</li>
+  <li>вчерашний народ рассержен, да еще и знакомым рассказывает</li>
+  <li>... ???? ...</li>
+  <li>... Надо <span class="green">что-то</span> <span class="red">делать!!!</span></li>
+</ul>
+</article>
+
+<article>
+<h3>Первое решение</h3>
+<ul class="build">
+  <li>Дорогая, ты видела какую я штуку сделал?</li>
+  <li>Поможешь?! Вливайся!</li>
+  <li>Вот твой стол, твоя книжка, твоя гарнитура.</li>
+  <li>Я поднял <a href="http://en.wikipedia.org/wiki/Private_branch_exchange#Private_branch_exchange">PBX</a> (АТС - единый входной номер - балансер)</li>
+  <li>... полетели!!!</li>
+  <li>... в первый же день обслужили в <em class="green">два раза</em> больше клиентов.</li>
+</ul>
+</article>
+
+<article>
+<h3>Что такое???</h3>
+    <ul class="build">
+      <li>Звонок: <em class="green">Я Джим, напомни есть сегодня встречи?</em></li>
+      <li> ... посмотрел, говорю <em class="blue">"Нет, нету, спасибо за ваш звонок!"</em></li>
+      <li><em class="green">Это я, Джим,</em> <em class="red">из-за вас</em> <em class="green">я пропустил визит к стоматологу!!!!</em></li>
+<li>анализ: когда Джим оставлял инфу, он попал не ко мне, а к жене</li>
+<li>в моей книге записи нет ... </li>
+<li>Смотрим записнушку жены - ага, челу не повезло.</li>
+<li><b>система not consistent (неоднородна? не согласована?) - показания не сходятся</b></li>
+<li>...<span class="green">надо что-то делать!!!!</li>
+</ul>
+</article>
+
+<article>
+<h3>Решение несогласованности</h3>
+<ul class="build">
+  <li>заводим протокол (<em>оговоренная последовательность шагов и процедур</em>):</li>
+  <li>до того, как сказать <em class="blue">"Спасибо, до связи!"</em> мы записываем данные друг другу</li>
+  <li>когда получаем звонок - все будет хорошо, ведь все данные есть у всех - <em class="green">правильный быстрый ответ!</em></li>
+  <li>... вот оно РЕШЕНИЕ !!!</li>
+</ul>
+</article>
+
+<article>
+<h3>Опять проблемы</h3>
+<ul class="build">
+  <li>трабл: на время синхронизации записи - всем приходится прерваться и потормозить - клиенты в очереди ждут, те, кто сейчас на линии злятся на отрывающегося оператора</li>
+  <li> ... да не проблема - все равно большую часть все ищут информацию - а тогда мы отвечаем <em class="green">быстро!</em></li>
+<li>... прерывание всех ... синхронность ... </li>
+<li>ой! протокол надо соблюдать <em class="red">всегда</em>, а что, если кто-то <b>недоступен</b> (телефон, заболел, в магазин отошел)?</li>
+<li><b>наш сервис unavailable - висит "подождите, я щас засинкаюсь", а потом клиент бросает трубку</b></li>
+<li><span class="green"> ... надо что-то делать ...</span></li>
+</ul>
+</article>
+
+<article>
+<h3>нам надо Consistent + Available </h3>
+<ul class="build">
+<li>идея: если чел рядом - мы ему говорим (<em class="green"> == быстро!</em>), а если нет - email пошлем (<em class="green">и ответили, и надежно</em>), он утром прочитает, внесет в свою книгу (<em class="green">ответ согласован!</em>).</li>
+<li>и наступило у нас долгое счастье</li>
+<li> ... А кто сказал, что это сказка с хорошим концом? ...</li>
+<li> Потеря коммуникаций: жена разговаривать не хочет.</li>
+<li>Уже два дня! ... письма пишу, а она их не читает ...</li>
+<li>А работать надо!!! ... и она тоже работает - есть несогласованные ответы!</li>
+<li>произошло разделение сети (partition) и наши апдейты "не доходят".</li>
+</ul>
+</article>
+
+<article>
+<h3>... бонусная идея ... </h3>
+<ul class="build">
+<li>заводим бегунок, который бегает туда-сюда, апдейты носит</li>
+<li>eventually (когда-ни-будь!) наши базы будут синхронизированы</li>
+<li>... если только ...</li>
+</ul>
+</article>
+
+<article>
+<h3>CAP сказка из жизни</h3>
+<p>Исходно:<br/><a href="http://ksat.me/a-plain-english-introduction-to-cap-theorem/">A plain english introduction to CAP Theorem</a><br/>by Kaushik Sathupadi</p>
+<p>Перевод:<br/>
+<a href="http://habrahabr.ru/post/130577/">CAP-теорема простым, доступным языком</a> by Артём Попов</p>
+</article>
+
+<article>
+<h3>В терминах базы</h3>
+<ul class="build">
+  <li>Сервис - одна точка входа, один процессор, одна база</li>
+  <li>... упало - ничего не работает</li>
+  <li>Делаем "два" мастера - один упал, второй работает</li>
+  <li>... PBX/АТС == балансер ...</li>
+  <li>... разъехалось состояния (consistency)</li>
+  <li>Делаем синхронный протокол - отвечаем согласованно</li>
+  <li>... не можем принять апдейт когда <em class="red">всех</em> нет</li>
+  <li>Даешь асинхронность - можно принять апдейт всегда</li>
+  <li>... есть шанс, что до всех еще не дошло (eventually!)</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>CAP</h3>
+<ul>
+<li>Consistency - согласована = все показания сходятся</li>
+<li>Availability - доступна = всегда отвечает</li>
+<li>Partition (tolerance) - работает с порванной сетью</li>
+</ul>
+<p><img src="files/db-cap.png" style="height: 500px" /></a>
+</article>
+
+<article>
+<h3>CAP теорема - описание</h3>
+<p><a href="http://en.wikipedia.org/wiki/CAP_theorem">wiki: CAP theorem</a></p>
+<p><a href="http://www.julianbrowne.com/article/viewer/brewers-cap-theorem">Brewer's CAP Theorem</a><br/>by Julian Browne</p>
+<p><a href="http://www.allthingsdistributed.com/2008/12/eventually_consistent.html">Eventually Consistent - Revisited</a><br/>
+<a href="http://www.infoq.com/presentations/availability-consistency">Talk: Availability &amp; Consistency</a><br/>
+by Werner Vogels, CTO Amazon / <a href="https://twitter.com/werner">@werner</a></p>
+<p class="smaller">Werner Vogel регулярно постит ссылки "Back-to-Basics Weekend Reading" - краткая аннотация и ссылка на исходную статью. Например: <a href="http://www.allthingsdistributed.com/2012/09/counting-bloom-filters.html">Counting Bloom Filter</a>.</p>
+</article>
+
+<article class="smaller">
+<h3>Новости CAP теоремы...</h3>
+<p><a href="http://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed">CAP Twelve Years Later: How the "Rules" Have Changed</a> by Eric Brewer (<a href="https://twitter.com/eric_brewer">@eric_brewer</a> / <a href="http://www.cs.berkeley.edu/~brewer/">http://www.cs.berkeley.edu/~brewer/</a>), May 30, 2012</p>
+
+<p>... "2 of 3" is missleading ...</p>
+<p>... что такое Partition? - это просто таймаут при работе с сетью ... и как ваша система реагируется на это ... </p>
+<p>Strategy should have three steps: detect partitions, enter an explicit partition mode that can limit some operations, and initiate a recovery process to restore consistency and compensate for mistakes made during a partition.</p>
+
+<p>Очень хорошая статья, много буков, читать!</p>
+</article>
+
+<!--article>
+<h3>Flashback:</h3>
+<ul>
+<li>бумажная телефонная книга, как база данных</li>
+<li>CRUD операции</li>
+<li>хранение данных в памяти</li>
+<li>UI к нашей базе (console / http / <span class="green">socket</span>)</li>
+<li>partition/sharding</li>
+<li>journal операций</li>
+<li>master-slave replication</li>
+<li>key-value store</li>
+<li>document oriented db</li>
+</ul>
+</article-->
+
+<article>
+<h3>Изменяемое состояние</h3>
+<ul>
+<li>фазированные (каталог раз в год)</li>
+<li>on-fly изменения (надо прямо сейчас - биржа)</li>
+<li>промежуточные варианты</li>
+</ul>
+<p class="green">nb: read-only данные - легко масштабируются под нагрузку - просто добавь копий данных</p>
+</article>
+
+<article>
+<h3>Транзакция в реальной жизни</h3>
+<ul>
+<li>в идеале - мгновенный переход из состояния "до" в состояние "после"</li>
+<li>фокус с переодеванием человека на модном шоу</li>
+<li>никто не должен видеть процесс перехода<br/>(как произошло)</li>
+<li>state machine - машина состояний</li>
+<li>связанные аккаунты - с одного списали, на другой занесли (<span class="green">несколько действий за один заход</span>)</li>
+<li>а как же наши журналы, индексы, счетчики етс? - <em class="green">сложное изменяемое состояние</em></li>
+</ul>
+</article>
+
+<article>
+<h3>транзакция сложнее</h3>
+<ul>
+<li>математика: y = f(x) - ответ не зависит от состояния - неизменяем</li>
+<li>атомарность == неделимое - либо всё, либо ничего</li>
+<li>компьютер - внешне быстр и атомарен, а внутри?</li>
+<li>атомарность i++</li>
+<li>нет зрителей - нет проблем, synchronize и делай все в "закрытом блоке"</li>
+<li>закрытый мир / stop the world</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>ACID / АСИД</h3>
+<p>Традиционные требования к базе данных до 2000-го года</p>
+<ul>
+<li>Atomicity = Атомарность</li>
+<li>Consistency = Согласованность / Корректность</li>
+<li>Isolation = Изолированность / Невидимость</li>
+<li>Durability = Долговечность / Устойчивость</li>
+</ul>
+<p class="green">acid (eng) - кислота<br/>&copy; <a href="http://lingvo.yandex.ru/acid/">http://lingvo.yandex.ru/acid/</a></p>
+<ul>
+  <li>Действий много, но я покажу либо всё, либо ничего</li>
+  <li>Когда закончу - всё будет ОК, всё будет подчищено</li>
+  <li>Вы работайте, а я вам своё пока не покажу, у меня своя копия мира</li>
+  <li>Если сказал сделано, значит не пропадет, всё записано надежно</li>
+</ul>
+
+<p>Возможно только в условиях полного контроля - "закрытый мир, закрытая вселенная" - я обо всём знаю</p>
+</article>
+
+<article>
+<h3>Атомарность</h3>
+<ul>
+<li>либо случилось, либо нет</li>
+<li>rollback</li>
+<li>undo-log</li>
+</ul>
+</article>
+
+<article>
+<h3>Согласованность</h3>
+<ul>
+<li>внутренне ( индексы, формат етс )</li>
+<li>внешне - все суммы посчитаны, все внешние ключи проставлены</li>
+<li>а как описать внешние ограничения на стороне базы?</li>
+<li>вычислительные ресурсы</li>
+<li>связи внутри и вовне</li>
+</ul>
+</article>
+
+<article>
+<h3>Изолированность</h3>
+<ul>
+<li>свой маленький мир</li>
+<li>я вижу свои изменения</li>
+<li>я не вижу изменений соседа</li>
+<li>начало времен</li>
+<li>иллюзия последовательности событий</li>
+<li>... уровни изоляции (подводная лодка)</li>
+</ul>
+</article>
+
+<article class="smaller">
+<h3>Isolation levels / уровни изоляции</h3>
+<p>Важно когда работают несколько пользователей</p>
+<ol>
+<li>Read uncommitted / dirty reads <br/>они откатились, а мы увидели</li>
+<li>Read committed / non-repeatable read <br/>значение ряда поменялось!</li>
+<li>Repeatable reads / phantom reads <br/>набор рядов меняется</li>
+<li>Serializable<br/>иллюзия последовательности - я один в мире</li>
+</ol>
+<p>SCN / system change number / "время" базы</p>
+<p><a href="http://en.wikipedia.org/wiki/Isolation_(database_systems)">wiki: Isolation (database systems)</a></p>
+<p><a href="http://docs.oracle.com/cd/B10500_01/server.920/a96524/c21cnsis.htm">How Oracle Manages Data Concurrency and Consistency</a></p>
+</article>
+
+<article>
+<h3>Долговечность / Устойчивость</h3>
+<ul>
+<li>я сказал "ок, значит ок"</li>
+<li>сначала в журнал, только потом ok</li>
+<li>свет выключили</li>
+<li>винт обсыпался</li>
+<li>в огне не горит, в воде не тонет</li>
+<li>журнал регистрации операций с недвижимостью - с печатью, пронумерованные, прошитые</li>
+</ul>
+<!-- <p class="green">(дурако)устойчивость</p> -->
+</article>
+
+<article>
+<h3>Достижимость ACID в кластере</h3>
+<ul>
+<li>атомарность?</li>
+<li>согласованность?</li>
+<li>изолированность?</li>
+<li>устойчивость?</li>
+</ul>
+<p><em class="green"> ... многоядерный компьютер - подобен кластеру и страдает от этих же проблем ... </em></p>
+</article>
+
+<article class="smaller">
+<h3>BASE</h3>
+<ul>
+<li>Basically Available - в принципе доступна</li>
+<li>Soft-state - в принципе знаем состояние</li>
+<li>Eventually-consistent - в принципе сойдется со временем</li>
+</ul>
+<p class="smaller"><a href="http://queue.acm.org/detail.cfm?id=1394128">BASE: An Acid Alternative</a><br/>by Dan Pritchett</p>
+<p><em class="green">Процесс последовательной трансформации с уменьшением глобального состояния - переформулируем систему так, дабы она прощала ошибки.</em></p>
+<p>Basically Available - в основном доступна, даже в условиях partition/crash - т.е. система "деградирует", но продолжает работать</p>
+<p>Soft State - данные потенциально восстановимы и можно жить даже с неверным состоянием (запаздывание, не ответ) етс.</p>
+<p>Eventually consistent - "ОК" давать оптимистичные ответы, если что, потом извинимся - поправим</p>
+<p><em>Подход <span class="green">"в принципе..."</span> / "верю, что всё будет хорошо, но готов поправить, если это не так"</em></p>
+<div class="source">Source: <a href="http://www.cs.cornell.edu/Courses/cs5412/2012sp/slides/VIII%20-%20BASE%20versus%20ACID.pdf">CS5214 / VIII - Base vs ACID</a></div>
+</article>
+
+<article class="smaller">
+<h3>Заблуждения распределенных систем</h3>
+<ol>
+<li>The network is reliable</li>
+<li>Latency is zero</li>
+<li>Bandwidth is infinite</li>
+<li>The network is secure</li>
+<li>Topology doesn't change</li>
+<li>There is one administrator</li>
+<li>Transport cost is zero</li>
+<li>The network is homogeneous</li>
+</ol>
+<p><a href="http://www.rgoarchitects.com/Files/fallacies.pdf">Fallacies of Distributed Computing Explained</a> by Arnon Rotem-Gal-Oz</p>
+<div class="source">Source: <a href="http://en.wikipedia.org/wiki/Fallacies_of_Distributed_Computing">wiki: Fallacies of Distributed Computing</a></div>
+</article>
+
+<article class="smaller">
+<h3>Желаемые "свойства"</h3>
+<ol>
+  <li>Consistency: Updates in an agreed order</li>
+  <li>Durability: Once accepted, won’t be forgotten</li>
+  <li>Real-time responsiveness: Replies with bounded delay</li>
+  <li>Security:  Only permits authorized actions by authenticated parties</li>
+  <li>Privacy: Won’t disclose personal data</li>
+  <li>Fault-tolerance: Failures can’t prevent the system from providing desired services</li>
+  <li>Coordination: actions won’t interfere with one-another</li>
+</ol>
+<p>Очень понравился курс: <a href="http://www.cs.cornell.edu/Courses/cs5412/2012sp/"> CS5412: Cloud Computing (Spring 2012)</a> / Prof. Ken Birman / CS Cornell University (<a href="http://www.cs.cornell.edu/Courses/cs5412/2012sp/Syllabus.htm">слайды</a>)</p>
+<div class="source">Source: <a href="http://www.cs.cornell.edu/Courses/cs5412/2012sp/slides/VII%20-%20Data%20Center%20Anatomy.pdf">CS5412 Spring 2012 (Cloud Computing: Birman) / VII - Data Center Anatomy</a></div>
+</article>
+
+<article class="smaller">
+<h3>... а где сказка с добрым концом?</h3>
+<div></div>
+<p>Когда-то мир готов был подождать - <em class="green">ушел в базу, вернусь - скажу "точно"</em> - <em class="red">ACID</em></p>
+<p>Потом всем захотелось много всего и <em class="green">сразу</em> - пришлось придумать <em class="red">BASE</em></p>
+<p>Потом доказали - ищите <em class="green">баланс</em> между <em class="blue">"точно"</em> и <em class="green">"сразу"</em> - <em class="red">CAP теорему</em></p>
+<p/>
+<h3>Как же с этим жить? ... </h3>
+<p/>
+<p>Google / Research at Google / <a href="http://research.google.com/pubs/DistributedSystemsandParallelComputing.html">Distributed Systems and Parallel Computing</a> - 85 публикаций</p>
+<p>2011: <a href="http://research.google.com/pubs/pub36971.html">Megastore:</a> is a storage system developed to meet the requirements of today's interactive online services. Megastore blends the scalability of a NoSQL datastore with the convenience of a traditional RDBMS in a novel way, and provides both strong consistency guarantees and high availability. We provide <em class="green">fully serializable ACID semantics within fine-grained partitions of data</em>. This partitioning allows us to synchronously replicate each write across a wide area network with reasonable latency and support seamless failover between datacenters.</p> 
+<p>Oct 2012: <a href="http://research.google.com/archive/spanner.html">Spanner:</a> is Google's scalable, multi-version, globally-distributed, and synchronously-replicated database. It is the first system to distribute data at global scale and support externally-consistent distributed transactions. ... <em class="green">с упоминанием atomic clocks + GPS ...</em></p>
+
+</article>
+
+<article class="smaller">
+<h3>Итого:</h3>
+<p>ACID - мир един и подконтролен - всё знаю</p>
+<p>Уровень изоляции транзакций - "миры данных" подконтрольно разделены</p>
+<p>BASE - "в принципе" мир упрощенно выглядит так / знаю кое-что</p>
+<p>CAP - точное глобальное знание доступно только при бесконечно надежных каналах и бесконечной скорости. </p>
+<ul>
+  <li> ... а что вы знаете по скорость света и горизонт событий?</li>
+  <li> ... а вы видели кота Шредингера?</li>
+  <li> ... а что такое вероятностные структуры данных?</li>
+  <li> ... а зачем базе GPS?</li>
+</ul>
+<p/>
+
+        <h3>Вопросы?</h3>
+        <ul>
+          <li><a rel="author" href="http://fluffypulser.ru/about.html">Илья Тетерин</a></li>
+          <li><a href="http://twitter.com/ya_pulser">@ya_pulser</a></li>
+          <li>email: ya.pulser at gmail.com</li>
+          <li><a href="http://fluffypulser.ru/static/dbcourse.2012/index.html">http://fluffypulser.ru/static/dbcourse.2012/index.html</a></li>
+        </ul>
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+<!--
+TODO:
+  -- tedious example: wall art -> mosaic?
+-->
+<link rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="./files/styles.css"><script type="text/javascript" src="./files/prettify.js"></script></body></html>
